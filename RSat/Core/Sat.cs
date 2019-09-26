@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Numerics;
 
 namespace RSat.Core
 {
@@ -33,7 +34,7 @@ namespace RSat.Core
       return _variablesMap[name];
     }
 
-    public void AddLiterals(params Literal[] literals)
+    public void AddClausule(params Literal[] literals)
     {
       if (literals == null)
       {
@@ -47,7 +48,12 @@ namespace RSat.Core
     {
       var models = generateModels();
 
-      FoundModels = models.Where(model => model.IsModelFor(_clausules)).ToArray();
+      //FoundModels = models.Where(model => model.IsModelFor(_clausules)).ToArray();
+      var foundModel = models.FirstOrDefault(model => model.IsModelFor(_clausules));
+      FoundModels = foundModel == null
+        ? Enumerable.Empty<Model>()
+        : new[] { foundModel };
+
       return FoundModels.Any();
     }
 
@@ -55,31 +61,44 @@ namespace RSat.Core
     private IEnumerable<Model> generateModels()
     {
       const int VALUATIONS = 2;
+      BigInteger ONE = 1;
       var variablesMapCount = _variablesMap.Count;
       var singleLiterals = _clausules.Where(literals => literals.Length == 1)
                                      .Select(literals => literals[0])
-                                     .ToImmutableArray();
-      var numberOfModels = (long) Math.Pow(VALUATIONS, variablesMapCount);
-      for (var modelIndex = 0L; modelIndex < numberOfModels; modelIndex++)
+                                     .ToDictionary(literal => literal.Name);
+      var numberOfModels = (BigInteger)Math.Pow(VALUATIONS, variablesMapCount);
+      for (BigInteger modelIndex = 0; modelIndex < numberOfModels; modelIndex++)
       {
+        Console.WriteLine(modelIndex);
         var modelValues = new ModelValue[variablesMapCount];
         var varIndex = 0;
+        var haveModel = true;
         foreach (var varName in _variablesMap.Keys)
         {
-          var isVarTrue = (modelIndex & (1L << varIndex)) != 0;
-          modelValues[varIndex] = new ModelValue(varName, isVarTrue);
+
+          var isVarTrue = (modelIndex & (ONE << varIndex)) != 0;
+          var modelValue = new ModelValue(varName, isVarTrue);
+          modelValues[varIndex] = modelValue;
+          if (singleLiterals.TryGetValue(modelValue.Name, out var literal))
+          {
+            if (literal.IsTrue != modelValue.IsTrue)
+            {
+              Console.WriteLine($"Declined: {literal.Name}");
+              haveModel = false;
+              break;
+            }
+          }
           varIndex++;
         }
 
-        if (modelValues.Any(modelValue =>
-                              singleLiterals.Any(literal => literal.Name.Equals(modelValue.Name) &&
-                                                            modelValue.IsTrue != literal.IsTrue)))
+        if (!haveModel)
         {
           continue;
+
         }
 
         var model = new Model(modelIndex, modelValues);
-        //Console.WriteLine(model);
+        Console.WriteLine("Evaluating...");
 
         yield return model;
       }

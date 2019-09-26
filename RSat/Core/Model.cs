@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 
 namespace RSat.Core
@@ -9,7 +10,7 @@ namespace RSat.Core
   {
     private readonly IEnumerable<ModelValue> _modelValues;
 
-    public Model(long index,
+    public Model(BigInteger index,
                  IEnumerable<ModelValue> modelValues)
     {
       if (index < 0)
@@ -22,7 +23,7 @@ namespace RSat.Core
       _modelValues = modelValues ?? throw new ArgumentNullException(nameof(modelValues));
     }
 
-    public long Index
+    public BigInteger Index
     {
       get;
     }
@@ -37,7 +38,7 @@ namespace RSat.Core
     {
       foreach (var literals in clausules)
       {
-        var isClausuleSatisfied = literals.Any(literal => _modelValues.Single(value => value.Name == literal.Name) == literal);
+        var isClausuleSatisfied = literals.Any(literal => _modelValues.Single(val => val.Name == literal.Name) == literal);
 
         if (!isClausuleSatisfied)
         {

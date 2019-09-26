@@ -28,5 +28,9 @@ namespace RSat.Core
 
     public static implicit operator bool(Literal literal) => literal.IsTrue;
 
+    public override string ToString()
+    {
+      return $"{nameof(Name)}: {Name}, {nameof(IsTrue)}: {IsTrue}";
+    }
   }
 }
