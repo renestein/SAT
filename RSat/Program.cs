@@ -1,4 +1,5 @@
 ﻿using System;
+using RSat.Core;
 
 namespace RSat
 {
@@ -6,6 +7,12 @@ namespace RSat
     {
         static void Main(string[] args)
         {
+          var solver = new Sat();
+          solver.CreateVariable("A ");
+          solver.CreateVariable("B");
+          solver.CreateVariable("C");
+          solver.Solve();
+          Console.ReadLine();
         }
     }
 }
