@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 
 namespace RSat.Core
 {
@@ -13,6 +15,12 @@ namespace RSat.Core
       _variablesMap = new Dictionary<string, Variable>();
       _clausules = new List<Literal[]>();
     }
+
+    public IEnumerable<Model> FoundModels
+    {
+      get;
+      private set;
+    } = Enumerable.Empty<Model>();
 
     public void CreateVariable(string name)
     {
@@ -37,21 +45,20 @@ namespace RSat.Core
 
     public bool Solve()
     {
-      var results = generateModels();
+      var models = generateModels();
 
-      foreach (var result in results)
-      {
-        Console.WriteLine(result);
-      }
-
-      return false;
+      FoundModels = models.Where(model => model.IsModelFor(_clausules)).ToArray();
+      return FoundModels.Any();
     }
+
 
     private IEnumerable<Model> generateModels()
     {
       const int VALUATIONS = 2;
       var variablesMapCount = _variablesMap.Count;
-
+      var singleLiterals = _clausules.Where(literals => literals.Length == 1)
+                                     .Select(literals => literals[0])
+                                     .ToImmutableArray();
       var numberOfModels = (long) Math.Pow(VALUATIONS, variablesMapCount);
       for (var modelIndex = 0L; modelIndex < numberOfModels; modelIndex++)
       {
@@ -59,12 +66,22 @@ namespace RSat.Core
         var varIndex = 0;
         foreach (var varName in _variablesMap.Keys)
         {
-          var isVarTrue = (modelIndex & (1L << varIndex)) == 1;
+          var isVarTrue = (modelIndex & (1L << varIndex)) != 0;
           modelValues[varIndex] = new ModelValue(varName, isVarTrue);
           varIndex++;
         }
 
-        yield return new Model(modelIndex, modelValues);
+        if (modelValues.Any(modelValue =>
+                              singleLiterals.Any(literal => literal.Name.Equals(modelValue.Name) &&
+                                                            modelValue.IsTrue != literal.IsTrue)))
+        {
+          continue;
+        }
+
+        var model = new Model(modelIndex, modelValues);
+        //Console.WriteLine(model);
+
+        yield return model;
       }
     }
   }

@@ -32,5 +32,20 @@ namespace RSat.Core
       return
         $"{nameof(Index)}: {Index} {_modelValues.Aggregate(new StringBuilder(), (sb, modelValue) => sb.Append(modelValue + "\n"))}";
     }
+
+    public bool IsModelFor(IEnumerable<Literal[]> clausules)
+    {
+      foreach (var literals in clausules)
+      {
+        var isClausuleSatisfied = literals.Any(literal => _modelValues.Single(value => value.Name == literal.Name) == literal);
+
+        if (!isClausuleSatisfied)
+        {
+          return false;
+        }
+      }
+
+      return true;
+    }
   }
 }

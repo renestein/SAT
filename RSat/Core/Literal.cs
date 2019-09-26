@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.VisualBasic.CompilerServices;
 
 namespace RSat.Core
 {
@@ -24,5 +25,8 @@ namespace RSat.Core
     {
       get;
     }
+
+    public static implicit operator bool(Literal literal) => literal.IsTrue;
+
   }
 }

@@ -25,6 +25,8 @@ namespace RSat.Core
       get;
     }
 
+    public static implicit operator bool(ModelValue modelValue) => modelValue.IsTrue;
+
     public override string ToString()
     {
       return $"{nameof(Name)}: {Name}, {nameof(IsTrue)}: {IsTrue}";
