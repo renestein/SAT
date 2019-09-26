@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29318.209
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RSat", "RSat\RSat.csproj", "{A229D6AC-E5EB-4C9D-9D1F-5F50B8215754}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A229D6AC-E5EB-4C9D-9D1F-5F50B8215754}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A229D6AC-E5EB-4C9D-9D1F-5F50B8215754}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A229D6AC-E5EB-4C9D-9D1F-5F50B8215754}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A229D6AC-E5EB-4C9D-9D1F-5F50B8215754}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4D9ACC07-42E9-43D1-A1BD-19CDAD955275}
+	EndGlobalSection
+EndGlobal
