@@ -1,7 +1,6 @@
 ﻿using System;
-using Microsoft.VisualBasic.CompilerServices;
 
-namespace RSat.SAT
+namespace RSat.Core
 {
   public readonly struct Variable
   {

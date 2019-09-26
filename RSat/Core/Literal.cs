@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RSat.SAT
+namespace RSat.Core
 {
   public struct Literal
   {
