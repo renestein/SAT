@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.VisualBasic.CompilerServices;
 
 namespace RSat.SAT
 {
@@ -14,6 +15,10 @@ namespace RSat.SAT
     {
       get;
     }
+
+    public static implicit operator Literal(Variable variable) => new Literal(variable.Name, isTrue: true);
+
+    public static Literal operator ~(Variable variable) => new Literal(variable.Name, isTrue: false);
 
   }
 }
