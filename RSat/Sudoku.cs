@@ -17,7 +17,7 @@ namespace RSat
 
     public static void Run()
     {
-      var solver = new Sat();
+      var solver = new Sat(SimpleDPLLStrategy.Solve);
       addVariables(solver);
       addRowRule(solver);
       addColumnRule(solver);

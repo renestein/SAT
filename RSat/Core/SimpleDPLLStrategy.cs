@@ -18,14 +18,21 @@ namespace RSat.Core
       var solverStack = ImmutableStack<SolverState>.Empty;
       var initialSolverState = new SolverState(clausules,
                                                variablesMap,
-                                               INITIAL_LEVEL);
+                                               INITIAL_LEVEL,
+                                               true);
 
       solverStack = solverStack.Push(initialSolverState);
       while (!solverStack.IsEmpty)
       {
-        //TODO: eliminates contradictions.
+        
         solverStack = solverStack.Pop(out var currentState);
         Trace.WriteLine($"Iteration depth: {currentState.Depth}");
+
+        if (hasContradictions(currentState.Clausules))
+        {
+          Trace.WriteLine("Contradiction found. Backtracking...");
+          break;
+        }
 
         if (isConsistentSetOfLiterals(currentState.Clausules))
         {
@@ -39,6 +46,7 @@ namespace RSat.Core
           continue;
         }
 
+      
         var (afterPropagateClausules, afterPropagateVariableMap) = propagateUnitClausules(currentState.Clausules, currentState.VariablesMap);
         var (afterPureLiteralClausules, afterPureLiteralVariableMap) = handlePureLiterals(afterPropagateClausules, afterPropagateVariableMap);
 
@@ -48,6 +56,14 @@ namespace RSat.Core
 
 
 
+        var somethingChanged = chosenLiteral.IsValid ||
+                               !ReferenceEquals(afterPureLiteralClausules, currentState.Clausules) ||
+                               !ReferenceEquals(afterPureLiteralVariableMap, currentState.VariablesMap);
+        if (!somethingChanged)
+        {
+          Trace.WriteLine("Nothing changed. Backtracking...");
+          continue;
+        }
 
         if (!chosenLiteral.IsValid)
         {
@@ -56,7 +72,8 @@ namespace RSat.Core
             solverStack.Push(new
                                SolverState(afterPureLiteralClausules,
                                            afterPureLiteralVariableMap,
-                                           currentState.Depth + 1));
+                                           currentState.Depth + 1,
+                                           false));
         }
         else
         {
@@ -64,17 +81,26 @@ namespace RSat.Core
           var variableForChosenLiteral = afterPureLiteralVariableMap[chosenLiteral.Name];
           solverStack =
             solverStack.Push(new
-                               SolverState(afterPureLiteralClausules.Add(ImmutableList<Literal>.Empty.Add(variableForChosenLiteral)),
+                               SolverState(afterPureLiteralClausules.Add(ImmutableList<Literal>.Empty.Add(~variableForChosenLiteral)),
                                            afterPureLiteralVariableMap,
-                                           currentState.Depth + 1));
+                                           currentState.Depth + 1,
+                                          true));
           solverStack = solverStack.Push(new
-                                           SolverState(afterPureLiteralClausules.Add(ImmutableList<Literal>.Empty.Add(~variableForChosenLiteral)),
+                                           SolverState(afterPureLiteralClausules.Add(ImmutableList<Literal>.Empty.Add(variableForChosenLiteral)),
                                                        afterPureLiteralVariableMap,
-                                                       currentState.Depth + 1));
+                                                       currentState.Depth + 1,
+                                                      true));
         }
       }
 
       return null;
+    }
+
+    private static bool hasContradictions(Clausules clausules)
+    {
+      return clausules.Where(clausule => clausule.Count == 1).Select(clausule => clausule[0])
+                      .GroupBy(clausule => clausule.Name)
+                      .Any(groupedClausules => groupedClausules.Distinct().Count() != 1);
     }
 
     private static IEnumerable<ModelValue> generateModelValues(Clausules clausules,
@@ -122,17 +148,17 @@ namespace RSat.Core
       var newVariablesMap = variablesMap;
       foreach (var pureLiteral in pureLiteralsInClausules)
       {
-        if (newVariablesMap[pureLiteral.Name].AnyValueUsed())
-        {
-          continue;
-        }
+        //if (newVariablesMap[pureLiteral.Name].AnyValueUsed())
+        //{
+        //  continue;
+        //}
 
         Trace.WriteLine($"Trying pure literal strategy: {pureLiteral}");
         newVariablesMap = newVariablesMap.SetItem(pureLiteral.Name, pureLiteral.IsTrue
           ? variablesMap[pureLiteral.Name].TryTrueValue()
           : variablesMap[pureLiteral.Name].TryFalseValue());
 
-        var toDeleteClausules = newClausules.Where(clausule => clausule.Count > 1 && clausule.Contains(pureLiteral));
+        var toDeleteClausules = newClausules.Where(clausule => clausule.Contains(pureLiteral));
         newClausules = newClausules.RemoveRange(toDeleteClausules);
         var pureLiteralClausule = ImmutableList<Literal>.Empty.Add(pureLiteral);
         newClausules = newClausules.Add(pureLiteralClausule);
@@ -150,28 +176,44 @@ namespace RSat.Core
     private static (Clausules, VariablesMap) propagateUnitClausules(Clausules clausules,
                                                     ImmutableDictionary<string, Variable> variablesMap)
     {
-      var toPropagateUnitClausules = clausules
-                                     .Where(clausule => clausule.Count == 1 &&
-                                                        !variablesMap[clausule[0].Name].AnyValueUsed())
-                                     .Select(clausule => clausule[0]);
       var newClausules = clausules;
       var newVariableMap = variablesMap;
-      foreach (var unitClausule in toPropagateUnitClausules)
+      while (true)
       {
-        Trace.WriteLine($"Trying unit propagation of the clausule {unitClausule}");
-        newVariableMap = newVariableMap.SetItem(unitClausule.Name, unitClausule.IsTrue
-          ? variablesMap[unitClausule.Name].TryTrueValue()
-          : variablesMap[unitClausule.Name].TryFalseValue());
+        var toPropagateUnitClausules = newClausules
+                                       .Where(clausule => clausule.Count == 1 &&
+                                                          !newVariableMap[clausule[0].Name].AnyValueUsed())
+                                       .Select(clausule => clausule[0])
+                                       .Distinct()
+                                       .ToArray();
 
-        var toModifyClausules =
-          newClausules.Where(clausule => clausule.Any(literal => literal.Name.Equals(unitClausule.Name) &&
-                                                              literal.IsTrue != unitClausule.IsTrue));
-        newClausules = newClausules.RemoveRange(toModifyClausules);
-        var modifiedClausules =
-          toModifyClausules.Select(clausule => clausule
-                                               .Where(literal => literal.Name != unitClausule.Name || literal.Equals(unitClausule))
-                                               .ToImmutableList());
-        newClausules = newClausules.AddRange(modifiedClausules);
+        if (!toPropagateUnitClausules.Any())
+        {
+          break;
+        }
+
+        foreach (var unitClausule in toPropagateUnitClausules)
+        {
+          if(newVariableMap[unitClausule.Name].AnyValueUsed())
+          {
+            continue;
+          }
+          Trace.WriteLine($"Trying unit propagation of the clausule {unitClausule}");
+          newVariableMap = newVariableMap.SetItem(unitClausule.Name, unitClausule.IsTrue
+                                                    ? variablesMap[unitClausule.Name].TryTrueValue()
+                                                    : variablesMap[unitClausule.Name].TryFalseValue());
+
+          var toModifyClausules =
+            newClausules.Where(clausule => clausule.Any(literal => literal.Name.Equals(unitClausule.Name) &&
+                                                                   literal.IsTrue != unitClausule.IsTrue));
+          newClausules = newClausules.RemoveRange(toModifyClausules);
+          var modifiedClausules =
+            toModifyClausules.Select(clausule => clausule
+                                                 .Where(literal => literal.Name != unitClausule.Name ||
+                                                                   literal.Equals(unitClausule))
+                                                 .ToImmutableList());
+          newClausules = newClausules.AddRange(modifiedClausules);
+        }
       }
 
       return (newClausules, newVariableMap);
@@ -191,11 +233,13 @@ namespace RSat.Core
     {
       public SolverState(Clausules clausules,
                          ImmutableDictionary<string, Variable> variablesMap,
-                         int depth)
+                         int depth,
+                         bool literalAdded)
       {
         Clausules = clausules;
         VariablesMap = variablesMap;
         Depth = depth;
+        LiteralAdded = literalAdded;
       }
 
       public Clausules Clausules
@@ -209,6 +253,11 @@ namespace RSat.Core
       }
 
       public int Depth
+      {
+        get;
+      }
+
+      public bool LiteralAdded
       {
         get;
       }
