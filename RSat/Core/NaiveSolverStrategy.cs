@@ -1,14 +1,15 @@
 ﻿#define DUMP_MODELS
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Numerics;
 
 namespace RSat.Core
 {
-  public class NaiveSolverStrategy
+  public static class NaiveSolverStrategy
   {
-    public static Model? Solve(List<Literal[]> clausules, IDictionary<string, Variable> variablesMap)
+    public static Model? Solve(ImmutableList<ImmutableArray<Literal>> clausules, IDictionary<string, Variable> variablesMap)
     {
       var models = generateModels(variablesMap, clausules);
 #if DUMP_MODELS
@@ -26,7 +27,7 @@ namespace RSat.Core
     }
 
     private static IEnumerable<Model> generateModels(IDictionary<string, Variable> variablesMap,
-                                                     List<Literal[]> clausules)
+                                                     ImmutableList<ImmutableArray<Literal>> clausules)
     {
       const int VALUATIONS = 2;
       BigInteger ONE = 1;

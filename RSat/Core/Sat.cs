@@ -1,22 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Numerics;
 
 namespace RSat.Core
 {
   public class Sat
   {
-    private readonly Func<List<Literal[]>, IDictionary<string, Variable>, Model?> _solverStrategy;
-    private readonly List<Literal[]> _clausules;
+    private readonly ImmutableList<ImmutableArray<Literal>> _clausules;
+
+    private readonly Func<ImmutableList<ImmutableArray<Literal>>, IDictionary<string, Variable>, Model?>
+      _solverStrategy;
+
     private readonly IDictionary<string, Variable> _variablesMap;
 
-    public Sat(Func<List<Literal[]>, IDictionary<string, Variable>, Model?>  solverStrategy)
+    public Sat(Func<ImmutableList<ImmutableArray<Literal>>, IDictionary<string, Variable>, Model?> solverStrategy)
     {
       _solverStrategy = solverStrategy ?? throw new ArgumentNullException(nameof(solverStrategy));
       _variablesMap = new Dictionary<string, Variable>();
-      _clausules = new List<Literal[]>();
+      _clausules = ImmutableList<ImmutableArray<Literal>>.Empty;
     }
 
     public Sat() : this(NaiveSolverStrategy.Solve)
@@ -27,7 +28,7 @@ namespace RSat.Core
     {
       get;
       private set;
-    } = null;
+    }
 
     public void CreateVariable(string name)
     {
@@ -47,7 +48,7 @@ namespace RSat.Core
         throw new ArgumentNullException(nameof(literals));
       }
 
-      _clausules.Add(literals);
+      _clausules.Add(literals.ToImmutableArray());
     }
 
     public bool Solve()
@@ -55,6 +56,5 @@ namespace RSat.Core
       FoundModel = _solverStrategy(_clausules, _variablesMap);
       return FoundModel != null;
     }
-
   }
 }

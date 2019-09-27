@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -34,7 +35,7 @@ namespace RSat.Core
         $"{nameof(Index)}: {Index} {_modelValues.Aggregate(new StringBuilder(), (sb, modelValue) => sb.Append(modelValue + "\n"))}";
     }
 
-    public bool IsModelFor(IEnumerable<Literal[]> clausules)
+    public bool IsModelFor(ImmutableList<ImmutableArray<Literal>> clausules)
     {
       foreach (var literals in clausules)
       {
