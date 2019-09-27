@@ -7,9 +7,9 @@ namespace RSat
   {
     static void Main(string[] args)
     {
-      //runSimpleSolver();
-      Sudoku.Run();
-      
+      runSimpleSolver();
+      // Sudoku.Run();
+
       Console.ReadLine();
     }
 
@@ -18,16 +18,21 @@ namespace RSat
       var solver = new Sat();
       solver.CreateVariable("A");
       solver.CreateVariable("B");
+      //solver.AddClausule(solver.GetVariable("A"),  ~solver.GetVariable("B"));
+      //solver.AddClausule(~solver.GetVariable("A"),  solver.GetVariable("B"));
       solver.CreateVariable("C");
       solver.AddClausule(solver.GetVariable("A"), solver.GetVariable("B"), ~solver.GetVariable("A"));
       solver.AddClausule(solver.GetVariable("A"), solver.GetVariable("B"), ~solver.GetVariable("C"));
       if (solver.Solve())
       {
-        foreach (var model in solver.FoundModels)
-        {
-          Console.WriteLine(model);
-        }
+        Console.WriteLine("Model found!");
+        Console.WriteLine(solver.FoundModel);
       }
+      else
+      {
+        Console.WriteLine("No model found!");
+      }
+
     }
   }
 }

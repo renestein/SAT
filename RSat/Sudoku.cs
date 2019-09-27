@@ -26,7 +26,7 @@ namespace RSat
       encodeSudokuGame(solver);
       if (solver.Solve())
       {
-        Console.WriteLine(solver.FoundModels.First());
+        Console.WriteLine(solver.FoundModel);
       }
       else
       {
