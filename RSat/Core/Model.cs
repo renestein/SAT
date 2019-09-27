@@ -35,7 +35,7 @@ namespace RSat.Core
         $"{nameof(Index)}: {Index} {_modelValues.Aggregate(new StringBuilder(), (sb, modelValue) => sb.Append(modelValue + "\n"))}";
     }
 
-    public bool IsModelFor(ImmutableList<ImmutableArray<Literal>> clausules)
+    public bool IsModelFor(ImmutableList<ImmutableList<Literal>> clausules)
     {
       foreach (var literals in clausules)
       {

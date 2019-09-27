@@ -6,18 +6,18 @@ namespace RSat.Core
 {
   public class Sat
   {
-    private readonly ImmutableList<ImmutableArray<Literal>> _clausules;
+    private readonly ImmutableList<ImmutableList<Literal>> _clausules;
 
-    private readonly Func<ImmutableList<ImmutableArray<Literal>>, IDictionary<string, Variable>, Model?>
+    private readonly Func<ImmutableList<ImmutableList<Literal>>, ImmutableDictionary<string, Variable>, Model?>
       _solverStrategy;
 
-    private readonly IDictionary<string, Variable> _variablesMap;
+    private readonly ImmutableDictionary<string, Variable> _variablesMap;
 
-    public Sat(Func<ImmutableList<ImmutableArray<Literal>>, IDictionary<string, Variable>, Model?> solverStrategy)
+    public Sat(Func<ImmutableList<ImmutableList<Literal>>, ImmutableDictionary<string, Variable>, Model?> solverStrategy)
     {
       _solverStrategy = solverStrategy ?? throw new ArgumentNullException(nameof(solverStrategy));
-      _variablesMap = new Dictionary<string, Variable>();
-      _clausules = ImmutableList<ImmutableArray<Literal>>.Empty;
+      _variablesMap = ImmutableDictionary<string, Variable>.Empty;
+      _clausules = ImmutableList<ImmutableList<Literal>>.Empty;
     }
 
     public Sat() : this(NaiveSolverStrategy.Solve)
@@ -48,7 +48,7 @@ namespace RSat.Core
         throw new ArgumentNullException(nameof(literals));
       }
 
-      _clausules.Add(literals.ToImmutableArray());
+      _clausules.Add(literals.ToImmutableList());
     }
 
     public bool Solve()

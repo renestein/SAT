@@ -9,7 +9,7 @@ namespace RSat.Core
 {
   public static class NaiveSolverStrategy
   {
-    public static Model? Solve(ImmutableList<ImmutableArray<Literal>> clausules, IDictionary<string, Variable> variablesMap)
+    public static Model? Solve(ImmutableList<ImmutableList<Literal>> clausules, ImmutableDictionary<string, Variable> variablesMap)
     {
       var models = generateModels(variablesMap, clausules);
 #if DUMP_MODELS
@@ -27,12 +27,12 @@ namespace RSat.Core
     }
 
     private static IEnumerable<Model> generateModels(IDictionary<string, Variable> variablesMap,
-                                                     ImmutableList<ImmutableArray<Literal>> clausules)
+                                                     ImmutableList<ImmutableList<Literal>> clausules)
     {
       const int VALUATIONS = 2;
       BigInteger ONE = 1;
       var variablesMapCount = variablesMap.Count;
-      var singleLiterals = clausules.Where(literals => literals.Length == 1)
+      var singleLiterals = clausules.Where(literals => literals.Count == 1)
                                      .Select(literals => literals[0])
                                      .ToDictionary(literal => literal.Name);
       var numberOfModels = (BigInteger)Math.Pow(VALUATIONS, variablesMapCount);
