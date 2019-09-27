@@ -7,7 +7,7 @@ namespace RSat.Core
     [Flags]
     public enum AssignedValues
     {
-      None = ~All,
+      None = 0,
       False = 1,
       True = 2,
       All = False | True

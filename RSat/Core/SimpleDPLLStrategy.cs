@@ -25,15 +25,17 @@ namespace RSat.Core
       {
         //TODO: eliminates contradictions.
         solverStack = solverStack.Pop(out var currentState);
+        Trace.WriteLine($"Iteration depth: {currentState.Depth}");
+
         if (isConsistentSetOfLiterals(currentState.Clausules))
         {
-          Debug.WriteLine("Found model...");
+          Trace.WriteLine("Found model...");
           return new Model(0, generateModelValues(currentState.Clausules, currentState.VariablesMap));
         }
 
         if (hasEmptyClausule(currentState.Clausules))
         {
-          Debug.WriteLine("Empty clausule found. Backtracking...");
+          Trace.WriteLine("Empty clausule found. Backtracking...");
           continue;
         }
 
@@ -44,24 +46,32 @@ namespace RSat.Core
         var chosenLiteral = chooseNewLiteral(afterPureLiteralClausules,
                                              afterPureLiteralVariableMap);
 
+
+
+
         if (!chosenLiteral.IsValid)
         {
-          Debug.WriteLine($"Out of literals.");
-          continue;
+          Trace.WriteLine($"Out of literals");
+          solverStack =
+            solverStack.Push(new
+                               SolverState(afterPureLiteralClausules,
+                                           afterPureLiteralVariableMap,
+                                           currentState.Depth + 1));
         }
-
-        Debug.WriteLine($"Chosen literal {chosenLiteral.Name}");
-        var variableForChosenLiteral = afterPureLiteralVariableMap[chosenLiteral.Name];
-
-        solverStack =
-          solverStack.Push(new
-                             SolverState(afterPureLiteralClausules.Add(ImmutableList<Literal>.Empty.Add(variableForChosenLiteral)),
-                                         afterPureLiteralVariableMap,
-                                         currentState.Depth + 1));
-        solverStack = solverStack.Push(new
-                                         SolverState(afterPureLiteralClausules.Add(ImmutableList<Literal>.Empty.Add(~variableForChosenLiteral)),
-                                                     afterPureLiteralVariableMap,
-                                                     currentState.Depth + 1));
+        else
+        {
+          Trace.WriteLine($"Chosen literal {chosenLiteral.Name}");
+          var variableForChosenLiteral = afterPureLiteralVariableMap[chosenLiteral.Name];
+          solverStack =
+            solverStack.Push(new
+                               SolverState(afterPureLiteralClausules.Add(ImmutableList<Literal>.Empty.Add(variableForChosenLiteral)),
+                                           afterPureLiteralVariableMap,
+                                           currentState.Depth + 1));
+          solverStack = solverStack.Push(new
+                                           SolverState(afterPureLiteralClausules.Add(ImmutableList<Literal>.Empty.Add(~variableForChosenLiteral)),
+                                                       afterPureLiteralVariableMap,
+                                                       currentState.Depth + 1));
+        }
       }
 
       return null;
@@ -70,18 +80,18 @@ namespace RSat.Core
     private static IEnumerable<ModelValue> generateModelValues(Clausules clausules,
                                                                VariablesMap variablesMap)
     {
-      var modelValues  = clausules.Distinct()
+      var modelValues = clausules
                       .Select(clausule =>
                       {
                         var literal = clausule[0];
                         return new ModelValue(literal.Name, literal.IsTrue);
-                      }).ToArray();
+                      }).Distinct().ToArray();
 
       var retModelValues = modelValues.Concat(variablesMap
                                               .Keys.Where(varName => !modelValues.Any(modelValue =>
                                                                                         modelValue
                                                                                           .Name.Equals(varName)))
-                                              .Select(varName => new ModelValue(varName, true)));
+                                              .Select(varName => new ModelValue(varName, true))).ToArray();
       return retModelValues;
     }
 
@@ -112,12 +122,18 @@ namespace RSat.Core
       var newVariablesMap = variablesMap;
       foreach (var pureLiteral in pureLiteralsInClausules)
       {
+        if (newVariablesMap[pureLiteral.Name].AnyValueUsed())
+        {
+          continue;
+        }
+
+        Trace.WriteLine($"Trying pure literal strategy: {pureLiteral}");
         newVariablesMap = newVariablesMap.SetItem(pureLiteral.Name, pureLiteral.IsTrue
           ? variablesMap[pureLiteral.Name].TryTrueValue()
           : variablesMap[pureLiteral.Name].TryFalseValue());
 
-        var toDeleteClausules = clausules.Where(clausule => clausule.Count > 1 && clausule.Contains(pureLiteral));
-        newClausules = clausules.RemoveRange(toDeleteClausules);
+        var toDeleteClausules = newClausules.Where(clausule => clausule.Count > 1 && clausule.Contains(pureLiteral));
+        newClausules = newClausules.RemoveRange(toDeleteClausules);
         var pureLiteralClausule = ImmutableList<Literal>.Empty.Add(pureLiteral);
         newClausules = newClausules.Add(pureLiteralClausule);
       }
@@ -142,23 +158,23 @@ namespace RSat.Core
       var newVariableMap = variablesMap;
       foreach (var unitClausule in toPropagateUnitClausules)
       {
-        Debug.WriteLine($"Trying unit propagation of the clausule {unitClausule.Name}");
+        Trace.WriteLine($"Trying unit propagation of the clausule {unitClausule}");
         newVariableMap = newVariableMap.SetItem(unitClausule.Name, unitClausule.IsTrue
           ? variablesMap[unitClausule.Name].TryTrueValue()
           : variablesMap[unitClausule.Name].TryFalseValue());
 
         var toModifyClausules =
-          clausules.Where(clausule => clausule.Any(literal => literal.Name.Equals(unitClausule.Name) &&
+          newClausules.Where(clausule => clausule.Any(literal => literal.Name.Equals(unitClausule.Name) &&
                                                               literal.IsTrue != unitClausule.IsTrue));
         newClausules = newClausules.RemoveRange(toModifyClausules);
         var modifiedClausules =
           toModifyClausules.Select(clausule => clausule
-                                               .Where(literal => !literal.Name.Equals(unitClausule.Name))
+                                               .Where(literal => literal.Name != unitClausule.Name || literal.Equals(unitClausule))
                                                .ToImmutableList());
-        newClausules.AddRange(modifiedClausules);
+        newClausules = newClausules.AddRange(modifiedClausules);
       }
 
-      return (clausules, variablesMap);
+      return (newClausules, newVariableMap);
     }
 
 

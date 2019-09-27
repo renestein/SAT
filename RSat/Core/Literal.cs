@@ -39,7 +39,7 @@ namespace RSat.Core
       return string.Equals(Name, other.Name) && IsTrue == other.IsTrue;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
       return obj is Literal other && Equals(other);
     }

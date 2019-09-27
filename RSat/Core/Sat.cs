@@ -6,12 +6,12 @@ namespace RSat.Core
 {
   public class Sat
   {
-    private readonly ImmutableList<ImmutableList<Literal>> _clausules;
+    private ImmutableList<ImmutableList<Literal>> _clausules;
 
     private readonly Func<ImmutableList<ImmutableList<Literal>>, ImmutableDictionary<string, Variable>, Model?>
       _solverStrategy;
 
-    private readonly ImmutableDictionary<string, Variable> _variablesMap;
+    private ImmutableDictionary<string, Variable> _variablesMap;
 
     public Sat(Func<ImmutableList<ImmutableList<Literal>>, ImmutableDictionary<string, Variable>, Model?> solverStrategy)
     {
@@ -33,7 +33,7 @@ namespace RSat.Core
     public void CreateVariable(string name)
     {
       var variable = new Variable(name);
-      _variablesMap.Add(name, variable);
+      _variablesMap = _variablesMap.Add(name, variable);
     }
 
     public Variable GetVariable(string name)
@@ -48,7 +48,7 @@ namespace RSat.Core
         throw new ArgumentNullException(nameof(literals));
       }
 
-      _clausules.Add(literals.ToImmutableList());
+      _clausules = _clausules.Add(literals.ToImmutableList());
     }
 
     public bool Solve()
