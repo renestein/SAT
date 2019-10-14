@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Clausules =
+  System.Collections.Generic.List<System.Collections.Immutable.ImmutableList<RSat.Core.Literal>>;
+using ImmutableClausules =
   System.Collections.Immutable.ImmutableList<System.Collections.Immutable.ImmutableList<RSat.Core.Literal>>;
 using VariablesMap = System.Collections.Immutable.ImmutableDictionary<string, RSat.Core.Variable>;
 //Naive, inefficient (LINQ, Immutable collections), dirty.
@@ -10,11 +13,12 @@ namespace RSat.Core
 {
   public static class SimpleDPLLStrategy
   {
-    public static Model? Solve(Clausules clausules,
+    public static Model? Solve(ImmutableClausules iclausules,
                                VariablesMap variablesMap)
     {
       const int INITIAL_LEVEL = 0;
       var solverStack = ImmutableStack<SolverState>.Empty;
+      var clausules = iclausules.ToList();
       var initialSolverState = new SolverState(clausules,
                                                variablesMap,
                                                INITIAL_LEVEL,
@@ -78,14 +82,23 @@ namespace RSat.Core
         {
           Trace.WriteLine($"Chosen literal {chosenLiteral.Name}");
           var variableForChosenLiteral = afterPureLiteralVariableMap[chosenLiteral.Name];
+
+
+
+          var newClausulesNeg = new Clausules(afterPureLiteralClausules);
+          var newClausulesPos = new Clausules(afterPureLiteralClausules);
+
+          newClausulesNeg.Add(ImmutableList<Literal>.Empty.Add(~variableForChosenLiteral));
+          newClausulesPos.Add(ImmutableList<Literal>.Empty.Add(variableForChosenLiteral));
+
           solverStack =
             solverStack.Push(new
-                               SolverState(afterPureLiteralClausules.Add(ImmutableList<Literal>.Empty.Add(~variableForChosenLiteral)),
+                               SolverState(newClausulesNeg,
                                            afterPureLiteralVariableMap,
                                            currentState.Depth + 1,
                                           true));
           solverStack = solverStack.Push(new
-                                           SolverState(afterPureLiteralClausules.Add(ImmutableList<Literal>.Empty.Add(variableForChosenLiteral)),
+                                           SolverState(newClausulesPos,
                                                        afterPureLiteralVariableMap,
                                                        currentState.Depth + 1,
                                                       true));
@@ -134,18 +147,17 @@ namespace RSat.Core
     private static (Clausules, VariablesMap) handlePureLiterals(Clausules clausules,
                                                 ImmutableDictionary<string, Variable> variablesMap)
     {
-      var allLiterals = (from clausule in clausules
-                         where clausule.Count > 1
-                         from literal in clausule
-                         select literal).ToArray();
+      var pureLiteralsInClausules = (from clausule in clausules
+                                     where clausule.Count > 1
+                                     from literal in clausule
+                                     select literal).GroupBy(literal => literal.Name).Where(literals =>
+                                   {
+                                     var firstLiteral = literals.First();
+                                     return literals.All(literal => literal.IsTrue == firstLiteral.IsTrue);
+                                   }).Select(literals => literals.First()).ToArray();
 
-
-      var pureLiteralsInClausules =
-        allLiterals.Where(literal => allLiterals.All(nextLiteral =>
-                                                      !nextLiteral.Name.Equals(literal.Name) ||
-                                                      nextLiteral.IsTrue == literal.IsTrue)).Distinct();
-      var newClausules = clausules;
       var newVariablesMap = variablesMap;
+      var newClausules = clausules;
       foreach (var pureLiteral in pureLiteralsInClausules)
       {
         //if (newVariablesMap[pureLiteral.Name].AnyValueUsed())
@@ -158,10 +170,13 @@ namespace RSat.Core
           ? variablesMap[pureLiteral.Name].TryTrueValue()
           : variablesMap[pureLiteral.Name].TryFalseValue());
 
-        var toDeleteClausules = newClausules.Where(clausule => clausule.Contains(pureLiteral));
-        newClausules = newClausules.RemoveRange(toDeleteClausules);
+        var toDeleteClausules = newClausules.Where(clausule => clausule.Contains(pureLiteral)).ToHashSet();
+        /*newClausules = */
+        newClausules.RemoveAll(list => toDeleteClausules.Contains(list));
         var pureLiteralClausule = ImmutableList<Literal>.Empty.Add(pureLiteral);
-        newClausules = newClausules.Add(pureLiteralClausule);
+        /*newClausules = */
+        newClausules.Add(pureLiteralClausule);
+        Console.WriteLine($"Remaining clausules: {newClausules.Count}");
       }
 
       return (newClausules, newVariablesMap);
@@ -205,14 +220,18 @@ namespace RSat.Core
 
           var toModifyClausules =
             newClausules.Where(clausule => clausule.Any(literal => literal.Name.Equals(unitClausule.Name) &&
-                                                                   literal.IsTrue != unitClausule.IsTrue));
-          newClausules = newClausules.RemoveRange(toModifyClausules);
+                                                                   literal.IsTrue != unitClausule.IsTrue)).ToHashSet();
+          /*newClausules = */
+          newClausules.RemoveAll(list => toModifyClausules.Contains(list));
+          var clausuleVariable = variablesMap[unitClausule.Name];
+          var negUnitClausule = unitClausule.IsTrue
+            ? ~clausuleVariable
+            : clausuleVariable;
+
           var modifiedClausules =
-            toModifyClausules.Select(clausule => clausule
-                                                 .Where(literal => literal.Name != unitClausule.Name ||
-                                                                   literal.Equals(unitClausule))
-                                                 .ToImmutableList());
-          newClausules = newClausules.AddRange(modifiedClausules);
+            toModifyClausules.Select(clausule => clausule.RemoveAll(literal => negUnitClausule.Equals(literal)));
+          /*newClausules = */
+          newClausules.AddRange(modifiedClausules);
         }
       }
 

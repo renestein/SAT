@@ -9,9 +9,9 @@ namespace RSat
     static void Main(string[] args)
     {
       Trace.Listeners.Add(new ConsoleTraceListener());
-      //runSimpleSolver();
-      Sudoku.Run();
-      //solveMoreFormulas();
+     //runSimpleSolver();
+     Sudoku.Run();
+     //solveMoreFormulas();
 
       Console.ReadLine();
     }
@@ -50,15 +50,20 @@ namespace RSat
       var solver = new Sat(SimpleDPLLStrategy.Solve);
       solver.CreateVariable("A");
       solver.CreateVariable("B");
+      solver.AddClausule(~solver.GetVariable("B"), solver.GetVariable("A"));
+      solver.AddClausule(~solver.GetVariable("A"), solver.GetVariable("B"));
+      solver.AddClausule(solver.GetVariable("A"));
+      solver.AddClausule(~solver.GetVariable("A"));
+        
       //solver.AddClausule(solver.GetVariable("B"));
       //solver.AddClausule(solver.GetVariable("A"));
       //solver.AddClausule(solver.GetVariable("A"));
       //solver.AddClausule(solver.GetVariable("A"),  ~solver.GetVariable("B"));
       // solver.AddClausule(~solver.GetVariable("A"),  solver.GetVariable("B"));
-      solver.CreateVariable("C");
-      //solver.CreateVariable("D");
-      solver.AddClausule(solver.GetVariable("A"), solver.GetVariable("B"), ~solver.GetVariable("A"));
-      solver.AddClausule(solver.GetVariable("A"), solver.GetVariable("B"), ~solver.GetVariable("C"));
+      ////solver.CreateVariable("C");
+      //////solver.CreateVariable("D");
+      ////solver.AddClausule(solver.GetVariable("A"), solver.GetVariable("B"), ~solver.GetVariable("A"));
+      ////solver.AddClausule(solver.GetVariable("A"), solver.GetVariable("B"), ~solver.GetVariable("C"));
       //solver.AddClausule(solver.GetVariable("D"));
       //solver.AddClausule(solver.GetVariable("C"));
       //solver.AddClausule(~solver.GetVariable("C"), ~solver.GetVariable("D"));

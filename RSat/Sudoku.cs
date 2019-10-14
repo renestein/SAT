@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using RSat.Core;
@@ -42,9 +43,10 @@ namespace RSat
 
     private static void encodeSudokuGame(Sat solver)
     {
+      //https://dingo.sbs.arizona.edu/~sandiway/sudoku/examples.html
       solver.AddClausule(solver.GetVariable(getVariableName(0, 3, 2)));
       solver.AddClausule(solver.GetVariable(getVariableName(0, 4, 6)));
-      solver.AddClausule(solver.GetVariable(getVariableName(0, 7, 7)));
+      solver.AddClausule(solver.GetVariable(getVariableName(0, 6, 7)));
       solver.AddClausule(solver.GetVariable(getVariableName(0, 8, 1)));
 
       solver.AddClausule(solver.GetVariable(getVariableName(1, 0, 6)));
@@ -82,7 +84,7 @@ namespace RSat
       solver.AddClausule(solver.GetVariable(getVariableName(7, 7, 3)));
       solver.AddClausule(solver.GetVariable(getVariableName(7, 8, 6)));
 
-      solver.AddClausule(solver.GetVariable(getVariableName(8, 1, 7)));
+      solver.AddClausule(solver.GetVariable(getVariableName(8, 0, 7)));
       solver.AddClausule(solver.GetVariable(getVariableName(8, 2, 3)));
       solver.AddClausule(solver.GetVariable(getVariableName(8, 4, 1)));
       solver.AddClausule(solver.GetVariable(getVariableName(8, 5, 8)));
@@ -100,6 +102,12 @@ namespace RSat
                   .Select(grouping => grouping.Select(triad => solver.GetVariable(getVariableName(triad.row, triad.column, triad.value)))).ToArray();
 
 
+      exactlyOnce(solver, clausules);
+    }
+
+    private static void exactlyOnce(Sat solver,
+                                    IEnumerable<IEnumerable<Variable>> clausules)
+    {
       foreach (var clausule in clausules)
       {
         //At least one
@@ -129,13 +137,9 @@ namespace RSat
                       .GroupBy(triad => new { BoxR = triad.row / 3, BoxC = triad.column / 3, triad.value })
                       .Select(grouping =>
                                 grouping.Select(triad =>
-                                                  (Literal)solver.GetVariable(getVariableName(triad.row, triad.column,
-                                                                                               triad.value))));
-
-      foreach (var clausule in clausules)
-      {
-        solver.AddClausule(clausule.ToArray());
-      }
+                                                  solver.GetVariable(getVariableName(triad.row, triad.column,
+                                                                                               triad.value)))).ToArray();
+      exactlyOnce(solver, clausules);
     }
 
     private static void addColumnRule(Sat solver)
@@ -144,16 +148,13 @@ namespace RSat
                        from value in Enumerable.Range(1, NUMBER_OF_VALUES)
                        from row in Enumerable.Range(0, ROWS)
                        select new { row, column, value })
-                      .GroupBy(triad => new {triad.column, triad.value})
+                      .GroupBy(triad => new { triad.column, triad.value })
                       .Select(grouping =>
                                 grouping.Select(triad =>
-                                                  (Literal)solver.GetVariable(getVariableName(triad.row, grouping.Key.column,
-                                                                                               grouping.Key.value))));
+                                                  solver.GetVariable(getVariableName(triad.row, grouping.Key.column,
+                                                                                               grouping.Key.value)))).ToArray();
 
-      foreach (var clausule in clausules)
-      {
-        solver.AddClausule(clausule.ToArray());
-      }
+      exactlyOnce(solver, clausules);
     }
 
     private static void addRowRule(Sat solver)
@@ -162,17 +163,14 @@ namespace RSat
                        from column in Enumerable.Range(0, COLUMNS)
                        from value in Enumerable.Range(1, NUMBER_OF_VALUES)
                        select new { row, column, value })
-                      .GroupBy(triad => new {triad.row, triad.value })
+                      .GroupBy(triad => new { triad.row, triad.value })
                       .Select(grouping =>
                                 grouping.Select(triad =>
-                                                  (Literal)solver.GetVariable(getVariableName(grouping.Key.row,
+                                                  solver.GetVariable(getVariableName(grouping.Key.row,
                                                                                                triad.column,
-                                                                                               grouping.Key.value))));
+                                                                                               grouping.Key.value)))).ToArray();
 
-      foreach (var clausule in clausules)
-      {
-        solver.AddClausule(clausule.ToArray());
-      }
+      exactlyOnce(solver, clausules);
     }
 
     private static void addVariables(Sat solver)
