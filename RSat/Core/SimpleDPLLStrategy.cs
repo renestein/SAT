@@ -4,8 +4,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Clausules =
-  System.Collections.Generic.List<System.Collections.Immutable.ImmutableList<RSat.Core.Literal>>;
-using ImmutableClausules =
+  //System.Collections.Generic.List<System.Collections.Immutable.ImmutableList<RSat.Core.Literal>>;
+//using ImmutableClausules =
   System.Collections.Immutable.ImmutableList<System.Collections.Immutable.ImmutableList<RSat.Core.Literal>>;
 using VariablesMap = System.Collections.Immutable.ImmutableDictionary<string, RSat.Core.Variable>;
 //Naive, inefficient (LINQ, Immutable collections), dirty.
@@ -13,12 +13,11 @@ namespace RSat.Core
 {
   public static class SimpleDPLLStrategy
   {
-    public static Model? Solve(ImmutableClausules iclausules,
+    public static Model? Solve(Clausules clausules,
                                VariablesMap variablesMap)
     {
       const int INITIAL_LEVEL = 0;
       var solverStack = ImmutableStack<SolverState>.Empty;
-      var clausules = iclausules.ToList();
       var initialSolverState = new SolverState(clausules,
                                                variablesMap,
                                                INITIAL_LEVEL,
@@ -85,11 +84,11 @@ namespace RSat.Core
 
 
 
-          var newClausulesNeg = new Clausules(afterPureLiteralClausules);
-          var newClausulesPos = new Clausules(afterPureLiteralClausules);
+          var newClausulesNeg = afterPureLiteralClausules;
+          var newClausulesPos = afterPureLiteralClausules;
 
-          newClausulesNeg.Add(ImmutableList<Literal>.Empty.Add(~variableForChosenLiteral));
-          newClausulesPos.Add(ImmutableList<Literal>.Empty.Add(variableForChosenLiteral));
+          newClausulesNeg = newClausulesNeg.Add(ImmutableList<Literal>.Empty.Add(~variableForChosenLiteral));
+          newClausulesPos = newClausulesPos.Add(ImmutableList<Literal>.Empty.Add(variableForChosenLiteral));
 
           solverStack =
             solverStack.Push(new
@@ -171,10 +170,10 @@ namespace RSat.Core
           : variablesMap[pureLiteral.Name].TryFalseValue());
 
         var toDeleteClausules = newClausules.Where(clausule => clausule.Contains(pureLiteral)).ToHashSet();
-        /*newClausules = */
+        newClausules =
         newClausules.RemoveAll(list => toDeleteClausules.Contains(list));
         var pureLiteralClausule = ImmutableList<Literal>.Empty.Add(pureLiteral);
-        /*newClausules = */
+        newClausules =
         newClausules.Add(pureLiteralClausule);
         Console.WriteLine($"Remaining clausules: {newClausules.Count}");
       }
@@ -221,7 +220,7 @@ namespace RSat.Core
           var toModifyClausules =
             newClausules.Where(clausule => clausule.Any(literal => literal.Name.Equals(unitClausule.Name) &&
                                                                    literal.IsTrue != unitClausule.IsTrue)).ToHashSet();
-          /*newClausules = */
+          newClausules =
           newClausules.RemoveAll(list => toModifyClausules.Contains(list));
           var clausuleVariable = variablesMap[unitClausule.Name];
           var negUnitClausule = unitClausule.IsTrue
@@ -230,7 +229,7 @@ namespace RSat.Core
 
           var modifiedClausules =
             toModifyClausules.Select(clausule => clausule.RemoveAll(literal => negUnitClausule.Equals(literal)));
-          /*newClausules = */
+          newClausules =
           newClausules.AddRange(modifiedClausules);
         }
       }
