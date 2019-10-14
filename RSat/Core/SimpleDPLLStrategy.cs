@@ -2,11 +2,10 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Sockets;
 using Clausules =
   System.Collections.Immutable.ImmutableList<System.Collections.Immutable.ImmutableList<RSat.Core.Literal>>;
 using VariablesMap = System.Collections.Immutable.ImmutableDictionary<string, RSat.Core.Variable>;
-
+//Naive, inefficient (LINQ, Immutable collections), dirty.
 namespace RSat.Core
 {
   public static class SimpleDPLLStrategy
@@ -24,7 +23,7 @@ namespace RSat.Core
       solverStack = solverStack.Push(initialSolverState);
       while (!solverStack.IsEmpty)
       {
-        
+
         solverStack = solverStack.Pop(out var currentState);
         Trace.WriteLine($"Iteration depth: {currentState.Depth}");
 
@@ -46,7 +45,7 @@ namespace RSat.Core
           continue;
         }
 
-      
+
         var (afterPropagateClausules, afterPropagateVariableMap) = propagateUnitClausules(currentState.Clausules, currentState.VariablesMap);
         var (afterPureLiteralClausules, afterPureLiteralVariableMap) = handlePureLiterals(afterPropagateClausules, afterPropagateVariableMap);
 
@@ -136,6 +135,7 @@ namespace RSat.Core
                                                 ImmutableDictionary<string, Variable> variablesMap)
     {
       var allLiterals = (from clausule in clausules
+                         where clausule.Count > 1
                          from literal in clausule
                          select literal).ToArray();
 
@@ -194,7 +194,7 @@ namespace RSat.Core
 
         foreach (var unitClausule in toPropagateUnitClausules)
         {
-          if(newVariableMap[unitClausule.Name].AnyValueUsed())
+          if (newVariableMap[unitClausule.Name].AnyValueUsed())
           {
             continue;
           }

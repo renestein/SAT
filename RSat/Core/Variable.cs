@@ -42,7 +42,7 @@ namespace RSat.Core
 
     public Variable TryFalseValue()
     {
-      return new Variable(Name, UsedValues | AssignedValues.True);
+      return new Variable(Name, UsedValues | AssignedValues.False);
     }
 
     public  bool AllValuesUsed()
