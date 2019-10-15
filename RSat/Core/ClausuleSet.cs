@@ -56,7 +56,7 @@ namespace RSat.Core
       return IsEmpty || hasOnlyConsistentLiterals();
     }
 
-    public bool HasEmptyClausules()
+    public bool HasEmptyClausule()
     {
       for (var i = 0; i < Clausules.Count; i++)
       {

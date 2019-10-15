@@ -154,6 +154,50 @@ namespace RSat.Sudoku
       Run(board);
     }
 
+    public static void RunMisaSudoku()
+    {
+      var board = new SudokuBoard
+      {
+        [0, 2] = new CellValue(9),
+        [0, 3] = new CellValue(7),
+        [0, 5] = new CellValue(6),
+
+        [1, 4] = new CellValue(8),
+
+        [2, 2] = new CellValue(2),
+        [2, 5] = new CellValue(5),
+        [2, 6] = new CellValue(3),
+        [2, 8] = new CellValue(4),
+
+        [3, 0] = new CellValue(8),
+        [3, 2] = new CellValue(7),
+        [3, 4] = new CellValue(2),
+        [3, 8] = new CellValue(5),
+
+        [4, 1] = new CellValue(2),
+        [4, 3] = new CellValue(9),
+        [4, 5] = new CellValue(4),
+        [4, 7] = new CellValue(6),
+
+        [5, 0] = new CellValue(5),
+        [5, 4] = new CellValue(3),
+        [5, 6] = new CellValue(2),
+        [5, 8] = new CellValue(1),
+
+        [6, 0] = new CellValue(4),
+        [6, 2] = new CellValue(8),
+        [6, 3] = new CellValue(2),
+        [6, 6] = new CellValue(6),
+
+        [7, 4] = new CellValue(6),
+
+        [8, 3] = new CellValue(5),
+        [8, 5] = new CellValue(9),
+        [8, 6] = new CellValue(7)
+      };
+
+      Run(board);
+    }
     private static void modelValuesToBoardValues(SudokuBoard board,
                                                  IEnumerable<ModelValue> modelValues,
                                                  int ROW_INDEX,

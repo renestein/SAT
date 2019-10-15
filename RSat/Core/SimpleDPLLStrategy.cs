@@ -158,7 +158,7 @@ namespace RSat.Core
 
     private static bool hasEmptyClausule(Clausules clausules)
     {
-      return clausules.HasEmptyClausules();
+      return clausules.HasEmptyClausule();
     }
 
     private static (Clausules, VariablesMap) propagateUnitClausules(Clausules clausules,
