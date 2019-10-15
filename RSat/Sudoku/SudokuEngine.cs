@@ -13,8 +13,8 @@ namespace RSat.Sudoku
     private const int NUMBER_OF_VALUES = 9;
     private const int BOX_ROWS = 3;
     private const int BOX_COLUMNS = 3;
-    private static readonly int[] BOX_ROWS_INDICES = {0, 3, 6};
-    private static readonly int[] BOX_COLUMN_INDICES = {0, 3, 6};
+    private static readonly int[] BOX_ROWS_INDICES = { 0, 3, 6 };
+    private static readonly int[] BOX_COLUMN_INDICES = { 0, 3, 6 };
 
     public static void Run()
     {
@@ -64,6 +64,43 @@ namespace RSat.Sudoku
       {
         Console.WriteLine($"No solution found! Elapsed time (ms): {stopWatch.ElapsedMilliseconds})");
       }
+    }
+
+    public static void RunNotFunSudoku()
+    {
+      var board = new SudokuBoard
+      {
+        [0, 1] = new CellValue(2),
+
+        [1, 3] = new CellValue(6),
+        [1, 8] = new CellValue(3),
+
+        [2, 1] = new CellValue(7),
+        [2, 2] = new CellValue(4),
+        [2, 4] = new CellValue(8),
+
+        [3, 5] = new CellValue(3),
+        [3, 8] = new CellValue(2),
+
+        [4, 1] = new CellValue(8),
+        [4, 4] = new CellValue(4),
+        [4, 7] = new CellValue(1),
+
+        [5, 0] = new CellValue(6),
+        [5, 3] = new CellValue(5),
+
+        [6, 4] = new CellValue(1),
+        [6, 6] = new CellValue(7),
+        [6, 7] = new CellValue(8),
+
+        [7, 0] = new CellValue(5),
+        [7, 5] = new CellValue(9),
+
+        [8, 7] = new CellValue(4),
+
+      };
+
+      Run(board);
     }
 
     public static void RunSudoku1()
@@ -139,11 +176,11 @@ namespace RSat.Sudoku
     {
       const char VERTICAL_SEPARATOR = '|';
       const string INDENT = "\t\t";
-      var horizontalSeparator =INDENT + new string('–', (SudokuBoard.COLUMNS * 2) + 1);
+      var horizontalSeparator = INDENT + new string('–', (SudokuBoard.COLUMNS * 2) + 1);
       Console.WriteLine(horizontalSeparator);
       for (var i = 0; i < SudokuBoard.ROWS; i++)
       {
-        
+
         var currentRow = INDENT + VERTICAL_SEPARATOR;
 
         for (var j = 0; j < SudokuBoard.COLUMNS; j++)
@@ -238,10 +275,10 @@ namespace RSat.Sudoku
     private static void addOneValueInCellRule(Sat solver)
     {
       var clausules = (from row in Enumerable.Range(0, ROWS)
-                        from column in Enumerable.Range(0, COLUMNS)
-                        from value in Enumerable.Range(1, NUMBER_OF_VALUES)
-                        select new {row, column, value})
-                      .GroupBy(triad => new {triad.row, triad.column})
+                       from column in Enumerable.Range(0, COLUMNS)
+                       from value in Enumerable.Range(1, NUMBER_OF_VALUES)
+                       select new { row, column, value })
+                      .GroupBy(triad => new { triad.row, triad.column })
                       .Select(grouping =>
                                 grouping.Select(triad =>
                                                   solver.GetVariable(getVariableName(triad.row, triad.column,
@@ -257,13 +294,13 @@ namespace RSat.Sudoku
       foreach (var clausule in clausules)
       {
         //At least one
-        var literals = clausule.Select(variable => (Literal) variable).ToArray();
+        var literals = clausule.Select(variable => (Literal)variable).ToArray();
         solver.AddClausule(literals);
         //at most one
         var atMostOneClausules = (from var1 in clausule
-          from var2 in clausule
-          where var1.Name != var2.Name
-          select new[] {~var1, ~var2}).ToArray();
+                                  from var2 in clausule
+                                  where var1.Name != var2.Name
+                                  select new[] { ~var1, ~var2 }).ToArray();
 
         foreach (var atMostOneClausule in atMostOneClausules)
         {
@@ -275,12 +312,12 @@ namespace RSat.Sudoku
     private static void addBoxRule(Sat solver)
     {
       var clausules = (from value in Enumerable.Range(1, NUMBER_OF_VALUES)
-                        from row in BOX_ROWS_INDICES
-                        from column in BOX_COLUMN_INDICES
-                        from relRow in Enumerable.Range(0, BOX_ROWS)
-                        from relColumn in Enumerable.Range(0, BOX_COLUMNS)
-                        select new {row = row + relRow, column = column + relColumn, value})
-                      .GroupBy(triad => new {BoxR = triad.row / 3, BoxC = triad.column / 3, triad.value})
+                       from row in BOX_ROWS_INDICES
+                       from column in BOX_COLUMN_INDICES
+                       from relRow in Enumerable.Range(0, BOX_ROWS)
+                       from relColumn in Enumerable.Range(0, BOX_COLUMNS)
+                       select new { row = row + relRow, column = column + relColumn, value })
+                      .GroupBy(triad => new { BoxR = triad.row / 3, BoxC = triad.column / 3, triad.value })
                       .Select(grouping =>
                                 grouping.Select(triad =>
                                                   solver.GetVariable(getVariableName(triad.row, triad.column,
@@ -291,10 +328,10 @@ namespace RSat.Sudoku
     private static void addColumnRule(Sat solver)
     {
       var clausules = (from column in Enumerable.Range(0, COLUMNS)
-                        from value in Enumerable.Range(1, NUMBER_OF_VALUES)
-                        from row in Enumerable.Range(0, ROWS)
-                        select new {row, column, value})
-                      .GroupBy(triad => new {triad.column, triad.value})
+                       from value in Enumerable.Range(1, NUMBER_OF_VALUES)
+                       from row in Enumerable.Range(0, ROWS)
+                       select new { row, column, value })
+                      .GroupBy(triad => new { triad.column, triad.value })
                       .Select(grouping =>
                                 grouping.Select(triad =>
                                                   solver.GetVariable(getVariableName(triad.row, grouping.Key.column,
@@ -306,10 +343,10 @@ namespace RSat.Sudoku
     private static void addRowRule(Sat solver)
     {
       var clausules = (from row in Enumerable.Range(0, ROWS)
-                        from column in Enumerable.Range(0, COLUMNS)
-                        from value in Enumerable.Range(1, NUMBER_OF_VALUES)
-                        select new {row, column, value})
-                      .GroupBy(triad => new {triad.row, triad.value})
+                       from column in Enumerable.Range(0, COLUMNS)
+                       from value in Enumerable.Range(1, NUMBER_OF_VALUES)
+                       select new { row, column, value })
+                      .GroupBy(triad => new { triad.row, triad.value })
                       .Select(grouping =>
                                 grouping.Select(triad =>
                                                   solver.GetVariable(getVariableName(grouping.Key.row,
@@ -322,9 +359,9 @@ namespace RSat.Sudoku
     private static void addVariables(Sat solver)
     {
       var variableNames = from row in Enumerable.Range(0, ROWS)
-        from column in Enumerable.Range(0, COLUMNS)
-        from value in Enumerable.Range(1, NUMBER_OF_VALUES)
-        select getVariableName(row, column, value);
+                          from column in Enumerable.Range(0, COLUMNS)
+                          from value in Enumerable.Range(1, NUMBER_OF_VALUES)
+                          select getVariableName(row, column, value);
 
       foreach (var variableName in variableNames)
       {
