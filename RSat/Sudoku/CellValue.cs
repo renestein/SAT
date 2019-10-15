@@ -43,7 +43,7 @@ namespace RSat.Sudoku
       return Value == other.Value;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
       if (ReferenceEquals(null, obj))
       {
@@ -68,14 +68,14 @@ namespace RSat.Sudoku
       return Value;
     }
 
-    public static bool operator ==(CellValue left,
-                                   CellValue right)
+    public static bool operator ==(CellValue? left,
+                                   CellValue? right)
     {
       return Equals(left, right);
     }
 
-    public static bool operator !=(CellValue left,
-                                   CellValue right)
+    public static bool operator !=(CellValue? left,
+                                   CellValue? right)
     {
       return !Equals(left, right);
     }

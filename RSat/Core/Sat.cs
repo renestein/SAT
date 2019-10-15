@@ -1,23 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace RSat.Core
 {
   public class Sat
   {
-    private ImmutableList<ImmutableList<Literal>> _clausules;
+    private ClausuleSet? _clausulesSet;
+    private readonly List<Clausule> _clausules;
 
-    private readonly Func<ImmutableList<ImmutableList<Literal>>, ImmutableDictionary<string, Variable>, Model?>
+    private readonly Func<ClausuleSet, ImmutableDictionary<string, Variable>, Model?>
       _solverStrategy;
 
     private ImmutableDictionary<string, Variable> _variablesMap;
 
-    public Sat(Func<ImmutableList<ImmutableList<Literal>>, ImmutableDictionary<string, Variable>, Model?> solverStrategy)
+    public Sat(Func<ClausuleSet, ImmutableDictionary<string, Variable>, Model?> solverStrategy)
     {
       _solverStrategy = solverStrategy ?? throw new ArgumentNullException(nameof(solverStrategy));
       _variablesMap = ImmutableDictionary<string, Variable>.Empty;
-      _clausules = ImmutableList<ImmutableList<Literal>>.Empty;
+      _clausules = new List<Clausule>();
     }
 
     public Sat() : this(NaiveSolverStrategy.Solve)
@@ -48,12 +50,13 @@ namespace RSat.Core
         throw new ArgumentNullException(nameof(literals));
       }
 
-      _clausules = _clausules.Add(literals.ToImmutableList());
+      _clausules.Add(new Clausule(literals.ToList()));
     }
 
     public bool Solve()
     {
-      FoundModel = _solverStrategy(_clausules, _variablesMap);
+      _clausulesSet = new ClausuleSet(_clausules);
+      FoundModel = _solverStrategy(_clausulesSet, _variablesMap);
       return FoundModel != null;
     }
   }

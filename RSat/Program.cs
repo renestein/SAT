@@ -10,11 +10,11 @@ namespace RSat
     static void Main(string[] args)
     {
       Trace.Listeners.Add(new ConsoleTraceListener());
-     //runSimpleSolver();
-     // SudokuEngine.Run();
-     //SudokuEngine.RunSudoku1();
-     SudokuEngine.RunNotFunSudoku();
-     //solveMoreFormulas();
+      //runSimpleSolver();
+      //SudokuEngine.Run();
+      SudokuEngine.RunSudoku1();
+      //SudokuEngine.RunNotFunSudoku();
+      //solveMoreFormulas();
 
       Console.ReadLine();
     }
@@ -53,11 +53,10 @@ namespace RSat
       var solver = new Sat(SimpleDPLLStrategy.Solve);
       solver.CreateVariable("A");
       solver.CreateVariable("B");
+      solver.AddClausule(solver.GetVariable("B"));
       solver.AddClausule(~solver.GetVariable("B"), solver.GetVariable("A"));
-      solver.AddClausule(~solver.GetVariable("A"), solver.GetVariable("B"));
-      solver.AddClausule(solver.GetVariable("A"));
-      solver.AddClausule(~solver.GetVariable("A"));
-        
+      solver.AddClausule(solver.GetVariable("B"), ~solver.GetVariable("A"));
+
       //solver.AddClausule(solver.GetVariable("B"));
       //solver.AddClausule(solver.GetVariable("A"));
       //solver.AddClausule(solver.GetVariable("A"));

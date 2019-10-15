@@ -38,9 +38,9 @@ namespace RSat.Core
         $"{nameof(Index)}: {Index} {ModelValues.Aggregate(new StringBuilder(), (sb, modelValue) => sb.Append(modelValue + "\n"))}";
     }
 
-    public bool IsModelFor(ImmutableList<ImmutableList<Literal>> clausules)
+    public bool IsModelFor(ClausuleSet clausuleSet)
     {
-      foreach (var literals in clausules)
+      foreach (var literals in clausuleSet.Clausules.Select(clausule => clausule.Literals))
       {
         var isClausuleSatisfied =
           literals.Any(literal => ModelValues.Single(val => val.Name == literal.Name) == literal);

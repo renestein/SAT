@@ -1,24 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace RSat.Core
 {
-  public readonly struct Literal : IEquatable<Literal>
+  public class Literal : IEquatable<Literal>, IComparable<Literal>
   {
     public Literal(string name, bool isTrue)
     {
       Name = name ?? throw new ArgumentNullException(nameof(name));
       IsTrue = isTrue;
       IsFalse = !isTrue;
-      IsValid = true;
     }
-
-    public bool IsValid
-    {
-      get;
-    }
-
     public string Name
     {
       get;
@@ -55,9 +46,32 @@ namespace RSat.Core
 
     public static implicit operator bool(Literal literal) => literal.IsTrue;
 
+    public static Literal operator ~(Literal literal) => new Literal(literal.Name, !literal.IsTrue);
     public override string ToString()
     {
       return $"{nameof(Name)}: {Name}, {nameof(IsTrue)}: {IsTrue}";
     }
+
+    public int CompareTo(Literal other)
+    {
+      if (ReferenceEquals(this, other))
+      {
+        return 0;
+      }
+
+      if (ReferenceEquals(null, other))
+      {
+        return 1;
+      }
+
+      var nameComparison = string.Compare(Name, other.Name, StringComparison.Ordinal);
+      if (nameComparison != 0)
+      {
+        return nameComparison;
+      }
+
+      return IsTrue.CompareTo(other.IsTrue);
+    }
+
   }
 }

@@ -9,13 +9,13 @@ namespace RSat.Core
 {
   public static class NaiveSolverStrategy
   {
-    public static Model? Solve(ImmutableList<ImmutableList<Literal>> clausules, ImmutableDictionary<string, Variable> variablesMap)
+    public static Model? Solve(ClausuleSet clausuleSet, ImmutableDictionary<string, Variable> variablesMap)
     {
-      var models = generateModels(variablesMap, clausules);
+      var models = generateModels(variablesMap, clausuleSet);
 #if DUMP_MODELS
       foreach (var model in models)
       {
-        if (model.IsModelFor(clausules))
+        if (model.IsModelFor(clausuleSet))
         {
           Console.WriteLine("Found model (dump)...");
           Console.WriteLine(model);
@@ -23,17 +23,17 @@ namespace RSat.Core
       }
 #endif
 
-      return models.FirstOrDefault(model => model.IsModelFor(clausules));
+      return models.FirstOrDefault(model => model.IsModelFor(clausuleSet));
     }
 
     private static IEnumerable<Model> generateModels(IDictionary<string, Variable> variablesMap,
-                                                     ImmutableList<ImmutableList<Literal>> clausules)
+                                                     ClausuleSet clausules)
     {
       const int VALUATIONS = 2;
       BigInteger ONE = 1;
       var variablesMapCount = variablesMap.Count;
-      var singleLiterals = clausules.Where(literals => literals.Count == 1)
-                                     .Select(literals => literals[0])
+      var singleLiterals = clausules.Clausules.Where(clausule => clausule.Literals.Count == 1)
+                                     .Select(clausule=> clausule.FirstLiteral)
                                      .ToDictionary(literal => literal.Name);
       var numberOfModels = (BigInteger)Math.Pow(VALUATIONS, variablesMapCount);
       for (BigInteger modelIndex = 0; modelIndex < numberOfModels; modelIndex++)

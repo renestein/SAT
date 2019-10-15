@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Clausules =
+using Clausules = RSat.Core.ClausuleSet;
   //System.Collections.Generic.List<System.Collections.Immutable.ImmutableList<RSat.Core.Literal>>;
-//using ImmutableClausules =
-  System.Collections.Immutable.ImmutableList<System.Collections.Immutable.ImmutableList<RSat.Core.Literal>>;
+  //using ImmutableClausules =
+  //System.Collections.Immutable.ImmutableList<System.Collections.Immutable.ImmutableList<RSat.Core.Literal>>;
 using VariablesMap = System.Collections.Immutable.ImmutableDictionary<string, RSat.Core.Variable>;
 //Naive, inefficient (LINQ, Immutable collections), dirty.
 namespace RSat.Core
@@ -49,30 +49,31 @@ namespace RSat.Core
         }
 
 
-        var (afterPropagateClausules, afterPropagateVariableMap) = propagateUnitClausules(currentState.Clausules, currentState.VariablesMap);
-        var (afterPureLiteralClausules, afterPureLiteralVariableMap) = handlePureLiterals(afterPropagateClausules, afterPropagateVariableMap);
+        var (afterPropagateClausule, afterPropagateVariableMap) = propagateUnitClausules(currentState.Clausules, currentState.VariablesMap);
+        var (afterPureLiteralClausule, afterPureLiteralVariableMap) = handlePureLiterals(afterPropagateClausule, afterPropagateVariableMap);
 
 
-        var chosenLiteral = chooseNewLiteral(afterPureLiteralClausules,
+        var chosenLiteral = chooseNewLiteral(afterPureLiteralClausule,
                                              afterPureLiteralVariableMap);
 
 
 
-        var somethingChanged = chosenLiteral.IsValid ||
-                               !ReferenceEquals(afterPureLiteralClausules, currentState.Clausules) ||
+        var somethingChanged = chosenLiteral != null||
+                               !ReferenceEquals(afterPureLiteralClausule, currentState.Clausules) ||
                                !ReferenceEquals(afterPureLiteralVariableMap, currentState.VariablesMap);
+
         if (!somethingChanged)
         {
           Trace.WriteLine("Nothing changed. Backtracking...");
           continue;
         }
 
-        if (!chosenLiteral.IsValid)
+        if (chosenLiteral == null)
         {
           Trace.WriteLine($"Out of literals");
           solverStack =
             solverStack.Push(new
-                               SolverState(afterPureLiteralClausules,
+                               SolverState(afterPureLiteralClausule.Clone(),
                                            afterPureLiteralVariableMap,
                                            currentState.Depth + 1,
                                            false));
@@ -80,15 +81,10 @@ namespace RSat.Core
         else
         {
           Trace.WriteLine($"Chosen literal {chosenLiteral.Name}");
-          var variableForChosenLiteral = afterPureLiteralVariableMap[chosenLiteral.Name];
 
+          var newClausulesNeg = afterPureLiteralClausule.CloneWithClausule(new Clausule(new List<Literal>{~chosenLiteral}));
+          var newClausulesPos = afterPureLiteralClausule.CloneWithClausule(new Clausule(new List<Literal>{chosenLiteral}));
 
-
-          var newClausulesNeg = afterPureLiteralClausules;
-          var newClausulesPos = afterPureLiteralClausules;
-
-          newClausulesNeg = newClausulesNeg.Add(ImmutableList<Literal>.Empty.Add(~variableForChosenLiteral));
-          newClausulesPos = newClausulesPos.Add(ImmutableList<Literal>.Empty.Add(variableForChosenLiteral));
 
           solverStack =
             solverStack.Push(new
@@ -107,20 +103,17 @@ namespace RSat.Core
       return null;
     }
 
-    private static bool hasContradictions(Clausules clausules)
+    private static bool hasContradictions(ClausuleSet clausules)
     {
-      return clausules.Where(clausule => clausule.Count == 1).Select(clausule => clausule[0])
-                      .GroupBy(clausule => clausule.Name)
-                      .Any(groupedClausules => groupedClausules.Distinct().Count() != 1);
+      return clausules.IsContradiction();
     }
 
-    private static IEnumerable<ModelValue> generateModelValues(Clausules clausules,
+    private static IEnumerable<ModelValue> generateModelValues(Clausules clausulesSet,
                                                                VariablesMap variablesMap)
     {
-      var modelValues = clausules
-                      .Select(clausule =>
+      var modelValues = clausulesSet.Clausules.Select(clausule =>
                       {
-                        var literal = clausule[0];
+                        var literal = clausule.FirstLiteral;
                         return new ModelValue(literal.Name, literal.IsTrue);
                       }).Distinct().ToArray();
 
@@ -132,13 +125,10 @@ namespace RSat.Core
       return retModelValues;
     }
 
-    private static Literal chooseNewLiteral(Clausules clausules,
+    private static Literal? chooseNewLiteral(Clausules clausules,
                                            ImmutableDictionary<string, Variable> variablesMap)
     {
-      var selectedLiteral = (from clausule in clausules
-                             from literal in clausule
-                             where variablesMap[literal.Name].NoneValuesUsed()
-                             select literal).FirstOrDefault();
+      var selectedLiteral = clausules.SelectUnusedLiteral(variablesMap);
 
       return selectedLiteral;
     }
@@ -146,36 +136,20 @@ namespace RSat.Core
     private static (Clausules, VariablesMap) handlePureLiterals(Clausules clausules,
                                                 ImmutableDictionary<string, Variable> variablesMap)
     {
-      var pureLiteralsInClausules = (from clausule in clausules
-                                     where clausule.Count > 1
-                                     from literal in clausule
-                                     select literal).GroupBy(literal => literal.Name).Where(literals =>
-                                   {
-                                     var firstLiteral = literals.First();
-                                     return literals.All(literal => literal.IsTrue == firstLiteral.IsTrue);
-                                   }).Select(literals => literals.First()).ToArray();
+      var pureLiteralsInClausules = clausules.GetPureLiterals();
 
       var newVariablesMap = variablesMap;
       var newClausules = clausules;
       foreach (var pureLiteral in pureLiteralsInClausules)
       {
-        //if (newVariablesMap[pureLiteral.Name].AnyValueUsed())
-        //{
-        //  continue;
-        //}
-
         Trace.WriteLine($"Trying pure literal strategy: {pureLiteral}");
         newVariablesMap = newVariablesMap.SetItem(pureLiteral.Name, pureLiteral.IsTrue
           ? variablesMap[pureLiteral.Name].TryTrueValue()
           : variablesMap[pureLiteral.Name].TryFalseValue());
 
-        var toDeleteClausules = newClausules.Where(clausule => clausule.Contains(pureLiteral)).ToHashSet();
-        newClausules =
-        newClausules.RemoveAll(list => toDeleteClausules.Contains(list));
-        var pureLiteralClausule = ImmutableList<Literal>.Empty.Add(pureLiteral);
-        newClausules =
-        newClausules.Add(pureLiteralClausule);
-        Console.WriteLine($"Remaining clausules: {newClausules.Count}");
+        newClausules.DeleteComplexSatisfiedClausulesContainingLiteral(pureLiteral);
+        newClausules = newClausules.CloneWithClausule(new Clausule(new List<Literal> {pureLiteral}));
+        Console.WriteLine($"Remaining clausulesSet: {newClausules.ClausulesCount}");
       }
 
       return (newClausules, newVariablesMap);
@@ -184,7 +158,7 @@ namespace RSat.Core
 
     private static bool hasEmptyClausule(Clausules clausules)
     {
-      return clausules.Any(clausule => !clausule.Any());
+      return clausules.HasEmptyClausules();
     }
 
     private static (Clausules, VariablesMap) propagateUnitClausules(Clausules clausules,
@@ -194,44 +168,21 @@ namespace RSat.Core
       var newVariableMap = variablesMap;
       while (true)
       {
-        var toPropagateUnitClausules = newClausules
-                                       .Where(clausule => clausule.Count == 1 &&
-                                                          !newVariableMap[clausule[0].Name].AnyValueUsed())
-                                       .Select(clausule => clausule[0])
-                                       .Distinct()
-                                       .ToArray();
-
-        if (!toPropagateUnitClausules.Any())
+        var toPropagateUnitClausule = newClausules.SelectUnitClausule(newVariableMap);
+        if (toPropagateUnitClausule == null)
         {
           break;
         }
 
-        foreach (var unitClausule in toPropagateUnitClausules)
-        {
-          if (newVariableMap[unitClausule.Name].AnyValueUsed())
-          {
-            continue;
-          }
-          Trace.WriteLine($"Trying unit propagation of the clausule {unitClausule}");
-          newVariableMap = newVariableMap.SetItem(unitClausule.Name, unitClausule.IsTrue
-                                                    ? variablesMap[unitClausule.Name].TryTrueValue()
-                                                    : variablesMap[unitClausule.Name].TryFalseValue());
+        var singleLiteral = toPropagateUnitClausule.FirstLiteral;
+        Trace.WriteLine($"Trying unit propagation of the clausule with literal: {singleLiteral}");
 
-          var toModifyClausules =
-            newClausules.Where(clausule => clausule.Any(literal => literal.Name.Equals(unitClausule.Name) &&
-                                                                   literal.IsTrue != unitClausule.IsTrue)).ToHashSet();
-          newClausules =
-          newClausules.RemoveAll(list => toModifyClausules.Contains(list));
-          var clausuleVariable = variablesMap[unitClausule.Name];
-          var negUnitClausule = unitClausule.IsTrue
-            ? ~clausuleVariable
-            : clausuleVariable;
+        newVariableMap = newVariableMap.SetItem(singleLiteral.Name, singleLiteral.IsTrue
+                                                  ? variablesMap[singleLiteral.Name].TryTrueValue()
+                                                  : variablesMap[singleLiteral.Name].TryFalseValue());
 
-          var modifiedClausules =
-            toModifyClausules.Select(clausule => clausule.RemoveAll(literal => negUnitClausule.Equals(literal)));
-          newClausules =
-          newClausules.AddRange(modifiedClausules);
-        }
+        newClausules.DeleteLiteralFromClausules(~singleLiteral);
+
       }
 
       return (newClausules, newVariableMap);
@@ -240,10 +191,7 @@ namespace RSat.Core
 
     private static bool isConsistentSetOfLiterals(Clausules clausules)
     {
-      return !clausules.Any() || clausules.All(clausule => clausule.Count == 1) &&
-             clausules.Select(clausule => clausule[0])
-                      .GroupBy(clausule => clausule.Name)
-                      .All(groupedClausules => groupedClausules.Distinct().Count() == 1);
+      return clausules.IsConsistentSetOfLiterals();
     }
 
 
