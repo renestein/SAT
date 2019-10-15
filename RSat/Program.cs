@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using RSat.Core;
+using RSat.Sudoku;
 
 namespace RSat
 {
@@ -10,7 +11,8 @@ namespace RSat
     {
       Trace.Listeners.Add(new ConsoleTraceListener());
      //runSimpleSolver();
-     Sudoku.SudokuEngine.Run();
+     // SudokuEngine.Run();
+     SudokuEngine.RunSudoku1();
      //solveMoreFormulas();
 
       Console.ReadLine();
