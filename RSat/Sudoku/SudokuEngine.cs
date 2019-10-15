@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using RSat.Core;
 
-namespace RSat
+namespace RSat.Sudoku
 {
-  public class Sudoku
+  public class SudokuEngine
   {
     private const int ROWS = 9;
     private const int COLUMNS = 9;

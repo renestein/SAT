@@ -10,7 +10,7 @@ namespace RSat
     {
       Trace.Listeners.Add(new ConsoleTraceListener());
      //runSimpleSolver();
-     Sudoku.Run();
+     Sudoku.SudokuEngine.Run();
      //solveMoreFormulas();
 
       Console.ReadLine();
