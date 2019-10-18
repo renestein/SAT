@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
 namespace RSat.Core
@@ -120,34 +121,44 @@ namespace RSat.Core
       return pureLiterals;
     }
 
-    public void DeleteComplexSatisfiedClausulesContainingLiteral(Literal pureLiteral)
+    public void DeleteClausulesContainingLiteral(Literal literal)
     {
       for (int i = 0; i < Clausules.Count; i++)
       {
         var clausule = Clausules[i];
         
-        if (clausule.HasLiteral(pureLiteral))
+        if (clausule.HasLiteral(literal))
         {
           Clausules.Remove(clausule);
         }
       }
-
     }
 
-    public void AddClausule(Clausule clausule)
+    public ClausuleSet AddClausule(Clausule clausule)
     {
       Clausules.Add(clausule);
+      //var clonedClausule =  CloneWithClausule(clausule);
+      //var zipped = clonedClausule.Clausules.Zip(Clausules);
+
+      //foreach (var clausuleTuple in zipped)
+      //{
+      //  Debug.Assert(clausuleTuple.First.IsSameAs(clausuleTuple.Second));
+      //}
+      //return clonedClausule;
+
+      //Debug.Assert(clonedClausule.Clausules.Count == ClausulesCount);
+      return this;
     }
     public ClausuleSet CloneWithClausule(Clausule clausule)
     {
-      var clonedCalusules = cloneInternal();
+      var clonedClausules = cloneInternal();
 
       if (clausule != null)
       {
-        clonedCalusules.Add(clausule);
+        clonedClausules.Add(clausule);
       }
 
-      return new ClausuleSet(clonedCalusules);
+      return new ClausuleSet(clonedClausules);
     }
 
     public ClausuleSet Clone()

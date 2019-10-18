@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Net;
 
 namespace RSat.Core
 {
@@ -34,7 +35,7 @@ namespace RSat.Core
 
         return Literals[0];
       }
-     
+
     }
 
     public List<Literal> Literals
@@ -43,7 +44,7 @@ namespace RSat.Core
       private set;
     }
 
-		public void DeleteLiteral(Literal literal)
+    public void DeleteLiteral(Literal literal)
     {
       int index;
       while ((index = getLiteralIndex(literal)) >= 0)
@@ -66,6 +67,26 @@ namespace RSat.Core
 
       return null;
     }
+
+    public bool IsSameAs(Clausule clausule)
+    {
+      return clausule.Literals.Count == Literals.Count && hasSameLiterals(clausule, this);
+
+      static bool hasSameLiterals(Clausule first, Clausule second)
+      {
+        for (int i = 0; i < first.Literals.Count; i++)
+        {
+          if (!first.Literals[i].Equals(second.Literals[i]))
+          {
+            return false;
+          }
+
+        }
+        return true;
+      }
+
+    }
+
 
     public Clausule Clone()
     {

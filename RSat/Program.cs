@@ -10,10 +10,10 @@ namespace RSat
     static void Main(string[] args)
     {
       Trace.Listeners.Add(new ConsoleTraceListener());
-      runSimpleSolver();
+      //runSimpleSolver();
       //SudokuEngine.Run();
       //SudokuEngine.RunSudoku1();
-      //SudokuEngine.RunNotFunSudoku();
+      SudokuEngine.RunNotFunSudoku();
       //SudokuEngine.RunMisaSudoku();
       //solveMoreFormulas();
 
