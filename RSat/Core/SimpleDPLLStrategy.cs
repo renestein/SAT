@@ -24,6 +24,7 @@ namespace RSat.Core
                                                true);
 
       solverStack = solverStack.Push(initialSolverState);
+      preprocesClausules(clausules);
       while (!solverStack.IsEmpty)
       {
 
@@ -101,6 +102,11 @@ namespace RSat.Core
       }
 
       return null;
+    }
+
+    private static void preprocesClausules(ClausuleSet clausules)
+    {
+      clausules.DeleteTautologies();
     }
 
     private static bool hasContradictions(ClausuleSet clausules)

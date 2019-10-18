@@ -81,5 +81,18 @@ namespace RSat.Core
     {
       return Literals.BinarySearch(literal);
     }
+
+    //Assume sorted literals
+    public bool IsTautology()
+    {
+      for (var i = 1; i < Literals.Count; i++)
+      {
+        if (Literals[i - 1].IsNegationOf(Literals[i]))
+        {
+          return true;
+        }
+      }
+      return false;
+    }
   }
 }

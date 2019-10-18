@@ -25,6 +25,15 @@ namespace RSat.Core
       get;
     }
 
+    public bool IsNegationOf(Literal literal)
+    {
+      if (literal == null)
+      {
+        throw new ArgumentNullException(nameof(literal));
+      }
+
+      return literal.Name == Name && literal.IsTrue != IsTrue;
+    }
     public bool Equals(Literal other)
     {
       return string.Equals(Name, other.Name) && IsTrue == other.IsTrue;
@@ -42,6 +51,7 @@ namespace RSat.Core
         return (Name.GetHashCode() * 397) ^ IsTrue.GetHashCode();
       }
     }
+
 
 
     public static implicit operator bool(Literal literal) => literal.IsTrue;

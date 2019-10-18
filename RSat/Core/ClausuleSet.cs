@@ -179,6 +179,12 @@ namespace RSat.Core
 
       return false;
     }
+
+    public void DeleteTautologies()
+    {
+      Clausules.RemoveAll(clausule => clausule.IsTautology());
+    }
+
     private bool hasOnlyConsistentLiterals()
     {
       var dictionary = new Dictionary<string, Literal>();
