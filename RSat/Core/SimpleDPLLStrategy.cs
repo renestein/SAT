@@ -29,6 +29,7 @@ namespace RSat.Core
       const int INITIAL_LEVEL = 0;
 
       preprocessClausules(clausules);
+   
       var solverStack = ImmutableStack<SolverState>.Empty;
       var initialSolverState = new SolverState(clausules,
                                                variablesMap,
@@ -44,12 +45,7 @@ namespace RSat.Core
 
         var clausuleSet = currentState.Clausules;
 
-        if (hasContradictions(clausuleSet))
-        {
-          Trace.WriteLine("Contradiction found. Backtracking...");
-          break;
-        }
-
+        
         if (isConsistentSetOfLiterals(clausuleSet))
         {
           Trace.WriteLine("Found model...");
@@ -60,6 +56,11 @@ namespace RSat.Core
         {
           Trace.WriteLine("Empty clausule found. Backtracking...");
           continue;
+        }
+
+        if (hasContradictions(clausules))
+        {
+          Trace.WriteLine("Contradiction found. No model...");
         }
 
 
@@ -159,7 +160,6 @@ namespace RSat.Core
                                                 ImmutableDictionary<string, Variable> variablesMap)
     {
       var pureLiteralsInClausules = clausules.GetPureLiterals();
-      var newClausules = clausules;
       var newVariablesMap = variablesMap;
       foreach (var pureLiteral in pureLiteralsInClausules)
       {
@@ -168,19 +168,19 @@ namespace RSat.Core
           ? variablesMap[pureLiteral.Name].TryTrueValue()
           : variablesMap[pureLiteral.Name].TryFalseValue());
 
-        newClausules = simplifyClausulesSatisfiedByLiteral(newClausules, pureLiteral);
+        removeClausulesSatisfiedByLiteral(clausules, pureLiteral);
       }
 
-      return (newClausules, newVariablesMap);
+      return (clausules, newVariablesMap);
 
     }
 
-    private static Clausules simplifyClausulesSatisfiedByLiteral(Clausules clausules,
+    private static void removeClausulesSatisfiedByLiteral(Clausules clausules,
                                                                  Literal literal)
     {
+      Trace.WriteLine($"Deleting clausules with literal: {literal}");
       clausules.DeleteClausulesContainingLiteral(literal);
       Console.WriteLine($"Remaining ClausulesSet: {clausules.ClausulesCount}");
-      return clausules.AddClausule(new Clausule(new List<Literal> { literal }));
     }
 
     private static bool hasEmptyClausule(Clausules clausules)
@@ -209,7 +209,7 @@ namespace RSat.Core
                                                   : variablesMap[singleLiteral.Name].TryFalseValue());
 
         newClausules.DeleteLiteralFromClausules(~singleLiteral);
-
+        removeClausulesSatisfiedByLiteral(newClausules, singleLiteral);
       }
 
       return (newClausules, newVariableMap);
