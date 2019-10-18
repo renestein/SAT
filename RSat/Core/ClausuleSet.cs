@@ -135,16 +135,6 @@ namespace RSat.Core
     public ClausuleSet AddClausule(Clausule clausule)
     {
       Clausules.Add(clausule);
-      //var clonedClausule =  CloneWithClausule(clausule);
-      //var zipped = clonedClausule.Clausules.Zip(Clausules);
-
-      //foreach (var clausuleTuple in zipped)
-      //{
-      //  Debug.Assert(clausuleTuple.First.IsSameAs(clausuleTuple.Second));
-      //}
-      //return clonedClausule;
-
-      //Debug.Assert(clonedClausule.Clausules.Count == ClausulesCount);
       return this;
     }
     public ClausuleSet CloneWithClausule(Clausule clausule)
