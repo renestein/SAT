@@ -10,10 +10,10 @@ namespace RSat
     static void Main(string[] args)
     {
       Trace.Listeners.Add(new ConsoleTraceListener());
-      //runSimpleSolver();
+      runSimpleSolver();
       //SudokuEngine.Run();
       //SudokuEngine.RunSudoku1();
-      SudokuEngine.RunNotFunSudoku();
+      //SudokuEngine.RunNotFunSudoku();
       //SudokuEngine.RunMisaSudoku();
       //solveMoreFormulas();
 
@@ -55,8 +55,8 @@ namespace RSat
       solver.CreateVariable("A");
       solver.CreateVariable("B");
       solver.AddClausule(solver.GetVariable("B"));
-      solver.AddClausule(~solver.GetVariable("B"), solver.GetVariable("A"));
-      solver.AddClausule(solver.GetVariable("B"), ~solver.GetVariable("A"));
+      solver.AddClausule(~solver.GetVariable("A"), ~solver.GetVariable("B"), solver.GetVariable("A"));
+      solver.AddClausule(~solver.GetVariable("B"), ~solver.GetVariable("A"));
 
       //solver.AddClausule(solver.GetVariable("B"));
       //solver.AddClausule(solver.GetVariable("A"));

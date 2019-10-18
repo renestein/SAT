@@ -24,7 +24,7 @@ namespace RSat.Core
                                                true);
 
       solverStack = solverStack.Push(initialSolverState);
-      preprocesClausules(clausules);
+      preprocessClausules(clausules);
       while (!solverStack.IsEmpty)
       {
 
@@ -104,7 +104,7 @@ namespace RSat.Core
       return null;
     }
 
-    private static void preprocesClausules(ClausuleSet clausules)
+    private static void preprocessClausules(ClausuleSet clausules)
     {
       clausules.DeleteTautologies();
     }

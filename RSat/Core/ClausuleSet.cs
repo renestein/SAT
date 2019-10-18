@@ -134,6 +134,10 @@ namespace RSat.Core
 
     }
 
+    public void AddClausule(Clausule clausule)
+    {
+      Clausules.Add(clausule);
+    }
     public ClausuleSet CloneWithClausule(Clausule clausule)
     {
       var clonedCalusules = cloneInternal();
