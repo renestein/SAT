@@ -1,2 +1,13 @@
-A toy implementation of a simple SAT solver in the C#. Supports only basic DPLL algorithm.
+A toy implementation of a simple SAT solver in the C#. 
+* Supports DPLL algorithm.
+* Supports DIMACS format
 
+``` 
+ var sat = await Sat.FromFile(dimacsFilePath).ConfigureAwait(false);
+
+      var isSatisfiable = sat.Solve();
+      Console.WriteLine(sat.FoundModel);
+
+      Assert.IsTrue(isSatisfiable);
+
+ ```
