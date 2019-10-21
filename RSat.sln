@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29318.209
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RSat", "RSat\RSat.csproj", "{A229D6AC-E5EB-4C9D-9D1F-5F50B8215754}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RSat", "RSat\RSat.csproj", "{A229D6AC-E5EB-4C9D-9D1F-5F50B8215754}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RSatTest", "RSatTest\RSatTest.csproj", "{D942A634-7039-488C-94BE-D7DBE6FE7889}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{A229D6AC-E5EB-4C9D-9D1F-5F50B8215754}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A229D6AC-E5EB-4C9D-9D1F-5F50B8215754}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A229D6AC-E5EB-4C9D-9D1F-5F50B8215754}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D942A634-7039-488C-94BE-D7DBE6FE7889}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D942A634-7039-488C-94BE-D7DBE6FE7889}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D942A634-7039-488C-94BE-D7DBE6FE7889}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D942A634-7039-488C-94BE-D7DBE6FE7889}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

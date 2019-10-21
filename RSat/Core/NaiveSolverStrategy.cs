@@ -9,13 +9,13 @@ namespace RSat.Core
 {
   public static class NaiveSolverStrategy
   {
-    public static Model? Solve(ClausuleSet clausuleSet, ImmutableDictionary<string, Variable> variablesMap)
+    public static Model? Solve(ClauseSet clauseSet, Variables variablesMap)
     {
-      var models = generateModels(variablesMap, clausuleSet);
+      var models = generateModels(variablesMap, clauseSet);
 #if DUMP_MODELS
       foreach (var model in models)
       {
-        if (model.IsModelFor(clausuleSet))
+        if (model.IsModelFor(clauseSet))
         {
           Console.WriteLine("Found model (dump)...");
           Console.WriteLine(model);
@@ -23,17 +23,17 @@ namespace RSat.Core
       }
 #endif
 
-      return models.FirstOrDefault(model => model.IsModelFor(clausuleSet));
+      return models.FirstOrDefault(model => model.IsModelFor(clauseSet));
     }
 
-    private static IEnumerable<Model> generateModels(IDictionary<string, Variable> variablesMap,
-                                                     ClausuleSet clausules)
+    private static IEnumerable<Model> generateModels(Variables variablesMap,
+                                                     ClauseSet clauses)
     {
       const int VALUATIONS = 2;
       BigInteger ONE = 1;
-      var variablesMapCount = variablesMap.Count;
-      var singleLiterals = clausules.Clausules.Where(clausule => clausule.Literals.Count == 1)
-                                     .Select(clausule=> clausule.FirstLiteral)
+      var variablesMapCount = variablesMap.VariablesCount;
+      var singleLiterals = clauses.Clauses.Where(clause => clause.Literals.Count == 1)
+                                     .Select(clause=> clause.FirstLiteral)
                                      .ToDictionary(literal => literal.Name);
       var numberOfModels = (BigInteger)Math.Pow(VALUATIONS, variablesMapCount);
       for (BigInteger modelIndex = 0; modelIndex < numberOfModels; modelIndex++)
@@ -42,7 +42,7 @@ namespace RSat.Core
         var modelValues = new ModelValue[variablesMapCount];
         var varIndex = 0;
         var haveModel = true;
-        foreach (var varName in variablesMap.Keys)
+        foreach (var varName in variablesMap.VariableNames())
         {
 
           var isVarTrue = (modelIndex & (ONE << varIndex)) != 0;

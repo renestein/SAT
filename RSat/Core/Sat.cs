@@ -7,19 +7,18 @@ namespace RSat.Core
 {
   public class Sat
   {
-    private ClausuleSet? _clausulesSet;
-    private readonly List<Clausule> _clausules;
+    private ClauseSet? _clauseSet;
+    private readonly List<Clause> _clauses;
 
-    private readonly Func<ClausuleSet, ImmutableDictionary<string, Variable>, Model?>
-      _solverStrategy;
+    private readonly Func<ClauseSet, Variables, Model?> _solverStrategy;
 
-    private ImmutableDictionary<string, Variable> _variablesMap;
+    private Variables _variablesMap;
 
-    public Sat(Func<ClausuleSet, ImmutableDictionary<string, Variable>, Model?> solverStrategy)
+    public Sat(Func<ClauseSet, Variables, Model?> solverStrategy)
     {
       _solverStrategy = solverStrategy ?? throw new ArgumentNullException(nameof(solverStrategy));
-      _variablesMap = ImmutableDictionary<string, Variable>.Empty;
-      _clausules = new List<Clausule>();
+      _variablesMap = new Variables();
+      _clauses = new List<Clause>();
     }
 
     public Sat() : this(NaiveSolverStrategy.Solve)
@@ -32,10 +31,9 @@ namespace RSat.Core
       private set;
     }
 
-    public void CreateVariable(string name)
+    public Variable CreateVariable(string name)
     {
-      var variable = new Variable(name);
-      _variablesMap = _variablesMap.Add(name, variable);
+      return _variablesMap.Add(name);
     }
 
     public Variable GetVariable(string name)
@@ -43,20 +41,20 @@ namespace RSat.Core
       return _variablesMap[name];
     }
 
-    public void AddClausule(params Literal[] literals)
+    public void AddClause(params Literal[] literals)
     {
       if (literals == null)
       {
         throw new ArgumentNullException(nameof(literals));
       }
 
-      _clausules.Add(new Clausule(literals.ToList()));
+      _clauses.Add(new Clause(literals.ToList()));
     }
 
     public bool Solve()
     {
-      _clausulesSet = new ClausuleSet(_clausules);
-      FoundModel = _solverStrategy(_clausulesSet, _variablesMap);
+      _clauseSet = new ClauseSet(_clauses);
+      FoundModel = _solverStrategy(_clauseSet, _variablesMap);
       return FoundModel != null;
     }
   }

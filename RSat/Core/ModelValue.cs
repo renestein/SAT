@@ -2,7 +2,7 @@
 
 namespace RSat.Core
 {
-  public struct ModelValue
+  public class ModelValue
   {
     public ModelValue(string name, bool isTrue)
     {

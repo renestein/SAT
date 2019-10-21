@@ -38,14 +38,14 @@ namespace RSat.Core
         $"{nameof(Index)}: {Index} {ModelValues.Aggregate(new StringBuilder(), (sb, modelValue) => sb.Append(modelValue + "\n"))}";
     }
 
-    public bool IsModelFor(ClausuleSet clausuleSet)
+    public bool IsModelFor(ClauseSet clauseSet)
     {
-      foreach (var literals in clausuleSet.Clausules.Select(clausule => clausule.Literals))
+      foreach (var literals in clauseSet.Clauses.Select(clause => clause.Literals))
       {
-        var isClausuleSatisfied =
+        var isClauseSatisfied =
           literals.Any(literal => ModelValues.Single(val => val.Name == literal.Name) == literal);
 
-        if (!isClausuleSatisfied)
+        if (!isClauseSatisfied)
         {
           return false;
         }

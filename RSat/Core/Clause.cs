@@ -4,42 +4,40 @@ using System.Linq;
 
 namespace RSat.Core
 {
-  public class Clausule
+  public class Clause
   {
-    public Clausule(List<Literal> literals)
+    public Clause(List<Literal> literals)
     {
       Literals = literals ?? throw new ArgumentNullException(nameof(literals));
       Literals.Sort();
-    }
-
-    public bool IsUnitClausule()
-    {
-      return Literals.Count == 1;
-    }
-
-    public bool IsEmptyClausule()
-    {
-      return Literals.Count == 0;
     }
 
     public Literal FirstLiteral
     {
       get
       {
-        if (IsEmptyClausule())
+        if (IsEmptyClause())
         {
-          throw new InvalidOperationException("Empty clausule does not have literals!");
+          throw new InvalidOperationException("Empty clause does not have literals!");
         }
 
         return Literals[0];
       }
-
     }
 
     public List<Literal> Literals
     {
       get;
-      private set;
+    }
+
+    public bool IsUnitClause()
+    {
+      return Literals.Count == 1;
+    }
+
+    public bool IsEmptyClause()
+    {
+      return Literals.Count == 0;
     }
 
     public void DeleteLiteral(Literal literal)
@@ -49,15 +47,14 @@ namespace RSat.Core
       {
         Literals.RemoveAt(index);
       }
-      //Literals.RemoveAll(ourLiteral => ourLiteral.Equals(literal));
     }
 
-    public Literal? SelectUnusedLiteral(IDictionary<string, Variable> variablesMap)
+    public Literal? SelectUnusedLiteral(Variables variablesMap)
     {
-      for (int i = 0; i < Literals.Count; i++)
+      for (var i = 0; i < Literals.Count; i++)
       {
         var literal = Literals[i];
-        if (!variablesMap[literal.Name].AnyValueUsed())
+        if (!variablesMap[literal.Name].HasValue)
         {
           return literal;
         }
@@ -66,39 +63,34 @@ namespace RSat.Core
       return null;
     }
 
-    public bool IsSameAs(Clausule clausule)
+    public bool IsSameAs(Clause clause)
     {
-      return clausule.Literals.Count == Literals.Count && hasSameLiterals(clausule, this);
+      return clause.Literals.Count == Literals.Count && hasSameLiterals(clause, this);
 
-      static bool hasSameLiterals(Clausule first, Clausule second)
+      static bool hasSameLiterals(Clause first,
+                                  Clause second)
       {
-        for (int i = 0; i < first.Literals.Count; i++)
+        for (var i = 0; i < first.Literals.Count; i++)
         {
           if (!first.Literals[i].Equals(second.Literals[i]))
           {
             return false;
           }
-
         }
+
         return true;
       }
-
     }
 
 
-    public Clausule Clone()
+    public Clause Clone()
     {
-      return new Clausule(Literals.ToList());
+      return new Clause(Literals.ToList());
     }
 
     public bool HasLiteral(Literal pureLiteral)
     {
       return getLiteralIndex(pureLiteral) >= 0;
-    }
-
-    private int getLiteralIndex(Literal literal)
-    {
-      return Literals.BinarySearch(literal);
     }
 
     //Assume sorted literals
@@ -111,7 +103,13 @@ namespace RSat.Core
           return true;
         }
       }
+
       return false;
+    }
+
+    private int getLiteralIndex(Literal literal)
+    {
+      return Literals.BinarySearch(literal);
     }
   }
 }
