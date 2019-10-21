@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using RSat.Dimacs;
 
 namespace RSat.Core
 {
@@ -57,5 +60,20 @@ namespace RSat.Core
       FoundModel = _solverStrategy(_clauseSet, _variablesMap);
       return FoundModel != null;
     }
+
+    public static Task<Sat> FromStream(Stream stream)
+    {
+      return DimacsParser.Default.ParseCnf(stream);
+    }
+
+    public static Task<Sat> FromFile(string path)
+    {
+      return FromStream(new FileStream(path,
+                                       FileMode.Open,
+                                       FileAccess.Read,
+                                       FileShare.Read));
+    }
+
+    
   }
 }
