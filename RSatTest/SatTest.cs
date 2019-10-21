@@ -30,6 +30,7 @@ namespace RSatTest
       var sat = await Sat.FromFile(dimacsFilePath).ConfigureAwait(false);
 
       var isSatisfiable = sat.Solve();
+      Console.WriteLine(sat.FoundModel);
 
       Assert.IsTrue(isSatisfiable);
     }

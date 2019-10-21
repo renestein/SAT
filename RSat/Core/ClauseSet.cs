@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace RSat.Core
 {
-  public class ClauseSet
+  public partial class ClauseSet
   {
     public ClauseSet(List<Clause> clauses)
     {
@@ -51,12 +51,19 @@ namespace RSat.Core
       Clauses.Add(clause);
     }
 
-    public void DeleteLiteralFromClauses(Literal literal)
+    public ClauseOperationResult DeleteLiteralFromClauses(Literal literal)
     {
       for (var i = 0; i < Clauses.Count; i++)
       {
-        Clauses[i].DeleteLiteral(literal);
+        var clause = Clauses[i];
+        clause.DeleteLiteral(literal);
+        if (clause.IsEmptyClause())
+        {
+          return ClauseOperationResult.MinOneEmptyClausuleFound;
+        }
       }
+
+      return ClauseOperationResult.OperationSuccess;
     }
 
     public bool IsConsistentSetOfLiterals()

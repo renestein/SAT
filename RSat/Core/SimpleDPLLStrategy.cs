@@ -24,8 +24,8 @@ namespace RSat.Core
 
       const int INITIAL_LEVEL = 0;
 
-      //preprocessClausules(initialClauses);
-   
+      preprocessClausules(initialClauses);
+
       var solverStack = ImmutableStack<SolverState>.Empty;
       var initialSolverState = new SolverState(initialClauses,
                                                variablesMap,
@@ -61,9 +61,14 @@ namespace RSat.Core
         }
 
 
-        var unitClausePropagated = propagateUnitClauses(clauses, variables);
-         var pureLiteralsProcessed = handlePureLiterals(clauses, variables);
+        var unitClauseRuleResult = propagateUnitClauses(clauses, variables);
+        if (unitClauseRuleResult == ClauseSet.ClauseOperationResult.MinOneEmptyClausuleFound)
+        {
+          Trace.WriteLine("Empty clause (after unit rule) found. Backtracking...");
+          continue;
+        }
 
+        var pureLiteralsProcessed = handlePureLiterals(clauses, variables);
 
         var chosenLiteral = chooseNewLiteral(clauses,
                                              variables);
@@ -71,7 +76,7 @@ namespace RSat.Core
 
 
         var somethingChanged = chosenLiteral != null ||
-                                unitClausePropagated ||
+                                unitClauseRuleResult == ClauseSet.ClauseOperationResult.OperationSuccess ||
                                 pureLiteralsProcessed;
 
         if (!somethingChanged && !currentState.SomethingChangedInPreviousIteration)
@@ -89,16 +94,16 @@ namespace RSat.Core
                                            variablesMap.Clone(),
                                            currentState.Depth + 1,
                                            false)
-                               {
-                                 SomethingChangedInPreviousIteration =  somethingChanged
-                               });
+            {
+              SomethingChangedInPreviousIteration = somethingChanged
+            });
         }
         else
         {
           Trace.WriteLine($"Chosen literal {chosenLiteral.Name}");
 
-          var newClauseNeg = clauses.CloneWithClause(new Clause(new List<Literal>{~chosenLiteral}));
-          var newClausePos = clauses.CloneWithClause(new Clause(new List<Literal>{chosenLiteral}));
+          var newClauseNeg = clauses.CloneWithClause(new Clause(new List<Literal> { ~chosenLiteral }));
+          var newClausePos = clauses.CloneWithClause(new Clause(new List<Literal> { chosenLiteral }));
 
 
           solverStack =
@@ -165,7 +170,7 @@ namespace RSat.Core
 
         hasPureLiterals = true;
         removeClausulesSatisfiedByLiteral(clauses, pureLiteral);
-        clauses.AddClause(new Clause(new List<Literal> {pureLiteral}));
+        clauses.AddClause(new Clause(new List<Literal> { pureLiteral }));
         Console.WriteLine($"Remaining ClausesSet: {clauses.ClausesCount}");
       }
 
@@ -186,11 +191,11 @@ namespace RSat.Core
       return clauses.HasEmptyClause();
     }
 
-    private static bool propagateUnitClauses(ClauseSet clauses,
+    private static ClauseSet.ClauseOperationResult propagateUnitClauses(ClauseSet clauses,
                                              Variables variablesMap)
     {
 
-      var unitClausuleProcessed = false;
+      var unitClausuleRuleResult = ClauseSet.ClauseOperationResult.OperationNotUsed;
       while (true)
       {
         var toPropagateUnitClause = clauses.SelectUnitClause(variablesMap);
@@ -199,7 +204,7 @@ namespace RSat.Core
           break;
         }
 
-        unitClausuleProcessed = true;
+        unitClausuleRuleResult = ClauseSet.ClauseOperationResult.OperationSuccess;
 
         var singleLiteral = toPropagateUnitClause.FirstLiteral;
         Trace.WriteLine($"Trying unit propagation of the clause with literal: {singleLiteral}");
@@ -207,10 +212,14 @@ namespace RSat.Core
         variablesMap.SetToValue(singleLiteral.Name, singleLiteral.IsTrue);
         removeClausulesSatisfiedByLiteral(clauses, singleLiteral);
         clauses.AddClause(toPropagateUnitClause);
-        clauses.DeleteLiteralFromClauses(~singleLiteral);
+        var deleteLiteralResult = clauses.DeleteLiteralFromClauses(~singleLiteral);
+        if (deleteLiteralResult == ClauseSet.ClauseOperationResult.MinOneEmptyClausuleFound)
+        {
+          return deleteLiteralResult;
+        }
       }
 
-      return unitClausuleProcessed;
+      return unitClausuleRuleResult;
     }
 
 
@@ -254,7 +263,7 @@ namespace RSat.Core
         get;
       }
 
-      public bool SomethingChangedInPreviousIteration 
+      public bool SomethingChangedInPreviousIteration
       {
         get;
         set;

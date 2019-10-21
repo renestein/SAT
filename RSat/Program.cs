@@ -13,7 +13,7 @@ namespace RSat
       //runSimpleSolver();
       //SudokuEngine.Run();
       //SudokuEngine.RunSudoku1();
-      SudokuEngine.RunNotFunSudoku();
+      //SudokuEngine.RunNotFunSudoku();
       //SudokuEngine.RunMisaSudoku();
       //solveMoreFormulas();
 
