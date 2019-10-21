@@ -178,7 +178,7 @@ namespace RSat.Core
     {
       Trace.WriteLine($"Deleting clausules with literal: {literal}");
       clausules.DeleteClausesWithLiteral(literal);
-      Console.WriteLine($"Remaining ClausulesSet: {clausules.ClausesCount}");
+      Trace.WriteLine($"Remaining ClausulesSet: {clausules.ClausesCount}");
     }
 
     private static bool hasEmptyClause(ClauseSet clauses)

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
@@ -17,25 +17,25 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="DIMACS_Samples\easy\example1.txt">
+    <None Update="DIMACS_Samples\easy\sat_1.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="DIMACS_Samples\easy\example2.txt">
+    <None Update="DIMACS_Samples\easy\sat_2.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="DIMACS_Samples\easy\example3.txt">
+    <None Update="DIMACS_Samples\easy\sat_3.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="DIMACS_Samples\easy\example4.txt">
+    <None Update="DIMACS_Samples\easy\unsat_4.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DIMACS_Samples\hard\sat100.cnf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="DIMACS_Samples\hard\sat250.cnf">
+    <None Update="DIMACS_Samples\hard\ignore_sat250.cnf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="DIMACS_Samples\hard\unsat250.cnf">
+    <None Update="DIMACS_Samples\hard\ignore_unsat250.cnf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
