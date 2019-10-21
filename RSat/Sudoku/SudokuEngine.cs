@@ -250,7 +250,7 @@ namespace RSat.Sudoku
           var cellValue = board[i, j];
           if (cellValue != CellValue.Unknown)
           {
-            solver.AddClausule(solver.GetVariable(getVariableName(i, j, cellValue)));
+            solver.AddClause(solver.GetVariable(getVariableName(i, j, cellValue)));
           }
         }
       }
@@ -259,50 +259,50 @@ namespace RSat.Sudoku
     private static void rawEncodeSudokuGame(Sat solver)
     {
       //https://dingo.sbs.arizona.edu/~sandiway/sudoku/examples.html
-      solver.AddClausule(solver.GetVariable(getVariableName(0, 3, 2)));
-      solver.AddClausule(solver.GetVariable(getVariableName(0, 4, 6)));
-      solver.AddClausule(solver.GetVariable(getVariableName(0, 6, 7)));
-      solver.AddClausule(solver.GetVariable(getVariableName(0, 8, 1)));
+      solver.AddClause(solver.GetVariable(getVariableName(0, 3, 2)));
+      solver.AddClause(solver.GetVariable(getVariableName(0, 4, 6)));
+      solver.AddClause(solver.GetVariable(getVariableName(0, 6, 7)));
+      solver.AddClause(solver.GetVariable(getVariableName(0, 8, 1)));
 
-      solver.AddClausule(solver.GetVariable(getVariableName(1, 0, 6)));
-      solver.AddClausule(solver.GetVariable(getVariableName(1, 1, 8)));
-      solver.AddClausule(solver.GetVariable(getVariableName(1, 4, 7)));
-      solver.AddClausule(solver.GetVariable(getVariableName(1, 7, 9)));
+      solver.AddClause(solver.GetVariable(getVariableName(1, 0, 6)));
+      solver.AddClause(solver.GetVariable(getVariableName(1, 1, 8)));
+      solver.AddClause(solver.GetVariable(getVariableName(1, 4, 7)));
+      solver.AddClause(solver.GetVariable(getVariableName(1, 7, 9)));
 
-      solver.AddClausule(solver.GetVariable(getVariableName(2, 0, 1)));
-      solver.AddClausule(solver.GetVariable(getVariableName(2, 1, 9)));
-      solver.AddClausule(solver.GetVariable(getVariableName(2, 5, 4)));
-      solver.AddClausule(solver.GetVariable(getVariableName(2, 6, 5)));
+      solver.AddClause(solver.GetVariable(getVariableName(2, 0, 1)));
+      solver.AddClause(solver.GetVariable(getVariableName(2, 1, 9)));
+      solver.AddClause(solver.GetVariable(getVariableName(2, 5, 4)));
+      solver.AddClause(solver.GetVariable(getVariableName(2, 6, 5)));
 
-      solver.AddClausule(solver.GetVariable(getVariableName(3, 0, 8)));
-      solver.AddClausule(solver.GetVariable(getVariableName(3, 1, 2)));
-      solver.AddClausule(solver.GetVariable(getVariableName(3, 3, 1)));
-      solver.AddClausule(solver.GetVariable(getVariableName(3, 7, 4)));
+      solver.AddClause(solver.GetVariable(getVariableName(3, 0, 8)));
+      solver.AddClause(solver.GetVariable(getVariableName(3, 1, 2)));
+      solver.AddClause(solver.GetVariable(getVariableName(3, 3, 1)));
+      solver.AddClause(solver.GetVariable(getVariableName(3, 7, 4)));
 
-      solver.AddClausule(solver.GetVariable(getVariableName(4, 2, 4)));
-      solver.AddClausule(solver.GetVariable(getVariableName(4, 3, 6)));
-      solver.AddClausule(solver.GetVariable(getVariableName(4, 5, 2)));
-      solver.AddClausule(solver.GetVariable(getVariableName(4, 6, 9)));
+      solver.AddClause(solver.GetVariable(getVariableName(4, 2, 4)));
+      solver.AddClause(solver.GetVariable(getVariableName(4, 3, 6)));
+      solver.AddClause(solver.GetVariable(getVariableName(4, 5, 2)));
+      solver.AddClause(solver.GetVariable(getVariableName(4, 6, 9)));
 
-      solver.AddClausule(solver.GetVariable(getVariableName(5, 1, 5)));
-      solver.AddClausule(solver.GetVariable(getVariableName(5, 5, 3)));
-      solver.AddClausule(solver.GetVariable(getVariableName(5, 7, 2)));
-      solver.AddClausule(solver.GetVariable(getVariableName(5, 8, 8)));
+      solver.AddClause(solver.GetVariable(getVariableName(5, 1, 5)));
+      solver.AddClause(solver.GetVariable(getVariableName(5, 5, 3)));
+      solver.AddClause(solver.GetVariable(getVariableName(5, 7, 2)));
+      solver.AddClause(solver.GetVariable(getVariableName(5, 8, 8)));
 
-      solver.AddClausule(solver.GetVariable(getVariableName(6, 2, 9)));
-      solver.AddClausule(solver.GetVariable(getVariableName(6, 3, 3)));
-      solver.AddClausule(solver.GetVariable(getVariableName(6, 7, 7)));
-      solver.AddClausule(solver.GetVariable(getVariableName(6, 8, 4)));
+      solver.AddClause(solver.GetVariable(getVariableName(6, 2, 9)));
+      solver.AddClause(solver.GetVariable(getVariableName(6, 3, 3)));
+      solver.AddClause(solver.GetVariable(getVariableName(6, 7, 7)));
+      solver.AddClause(solver.GetVariable(getVariableName(6, 8, 4)));
 
-      solver.AddClausule(solver.GetVariable(getVariableName(7, 1, 4)));
-      solver.AddClausule(solver.GetVariable(getVariableName(7, 4, 5)));
-      solver.AddClausule(solver.GetVariable(getVariableName(7, 7, 3)));
-      solver.AddClausule(solver.GetVariable(getVariableName(7, 8, 6)));
+      solver.AddClause(solver.GetVariable(getVariableName(7, 1, 4)));
+      solver.AddClause(solver.GetVariable(getVariableName(7, 4, 5)));
+      solver.AddClause(solver.GetVariable(getVariableName(7, 7, 3)));
+      solver.AddClause(solver.GetVariable(getVariableName(7, 8, 6)));
 
-      solver.AddClausule(solver.GetVariable(getVariableName(8, 0, 7)));
-      solver.AddClausule(solver.GetVariable(getVariableName(8, 2, 3)));
-      solver.AddClausule(solver.GetVariable(getVariableName(8, 4, 1)));
-      solver.AddClausule(solver.GetVariable(getVariableName(8, 5, 8)));
+      solver.AddClause(solver.GetVariable(getVariableName(8, 0, 7)));
+      solver.AddClause(solver.GetVariable(getVariableName(8, 2, 3)));
+      solver.AddClause(solver.GetVariable(getVariableName(8, 4, 1)));
+      solver.AddClause(solver.GetVariable(getVariableName(8, 5, 8)));
     }
 
     private static Sat prepareSolver()
@@ -318,7 +318,7 @@ namespace RSat.Sudoku
 
     private static void addOneValueInCellRule(Sat solver)
     {
-      var clausules = (from row in Enumerable.Range(0, ROWS)
+      var clauses = (from row in Enumerable.Range(0, ROWS)
                        from column in Enumerable.Range(0, COLUMNS)
                        from value in Enumerable.Range(1, NUMBER_OF_VALUES)
                        select new { row, column, value })
@@ -329,33 +329,33 @@ namespace RSat.Sudoku
                                                                                      triad.value)))).ToArray();
 
 
-      exactlyOnce(solver, clausules);
+      exactlyOnce(solver, clauses);
     }
 
     private static void exactlyOnce(Sat solver,
-                                    IEnumerable<IEnumerable<Variable>> clausules)
+                                    IEnumerable<IEnumerable<Variable>> clauses)
     {
-      foreach (var clausule in clausules)
+      foreach (var clause in clauses)
       {
         //At least one
-        var literals = clausule.Select(variable => (Literal)variable).ToArray();
-        solver.AddClausule(literals);
+        var literals = clause.Select(variable => (Literal)variable).ToArray();
+        solver.AddClause(literals);
         //at most one
-        var atMostOneClausules = (from var1 in clausule
-                                  from var2 in clausule
+        var atMostOneClauses = (from var1 in clause
+                                  from var2 in clause
                                   where var1.Name != var2.Name
                                   select new[] { ~var1, ~var2 }).ToArray();
 
-        foreach (var atMostOneClausule in atMostOneClausules)
+        foreach (var atMostOneClause in atMostOneClauses)
         {
-          solver.AddClausule(atMostOneClausule);
+          solver.AddClause(atMostOneClause);
         }
       }
     }
 
     private static void addBoxRule(Sat solver)
     {
-      var clausules = (from value in Enumerable.Range(1, NUMBER_OF_VALUES)
+      var clauses = (from value in Enumerable.Range(1, NUMBER_OF_VALUES)
                        from row in BOX_ROWS_INDICES
                        from column in BOX_COLUMN_INDICES
                        from relRow in Enumerable.Range(0, BOX_ROWS)
@@ -366,12 +366,12 @@ namespace RSat.Sudoku
                                 grouping.Select(triad =>
                                                   solver.GetVariable(getVariableName(triad.row, triad.column,
                                                                                      triad.value)))).ToArray();
-      exactlyOnce(solver, clausules);
+      exactlyOnce(solver, clauses);
     }
 
     private static void addColumnRule(Sat solver)
     {
-      var clausules = (from column in Enumerable.Range(0, COLUMNS)
+      var clauses = (from column in Enumerable.Range(0, COLUMNS)
                        from value in Enumerable.Range(1, NUMBER_OF_VALUES)
                        from row in Enumerable.Range(0, ROWS)
                        select new { row, column, value })
@@ -381,12 +381,12 @@ namespace RSat.Sudoku
                                                   solver.GetVariable(getVariableName(triad.row, grouping.Key.column,
                                                                                      grouping.Key.value)))).ToArray();
 
-      exactlyOnce(solver, clausules);
+      exactlyOnce(solver, clauses);
     }
 
     private static void addRowRule(Sat solver)
     {
-      var clausules = (from row in Enumerable.Range(0, ROWS)
+      var clauses = (from row in Enumerable.Range(0, ROWS)
                        from column in Enumerable.Range(0, COLUMNS)
                        from value in Enumerable.Range(1, NUMBER_OF_VALUES)
                        select new { row, column, value })
@@ -397,7 +397,7 @@ namespace RSat.Sudoku
                                                                                      triad.column,
                                                                                      grouping.Key.value)))).ToArray();
 
-      exactlyOnce(solver, clausules);
+      exactlyOnce(solver, clauses);
     }
 
     private static void addVariables(Sat solver)

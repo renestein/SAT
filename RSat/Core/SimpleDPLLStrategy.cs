@@ -3,22 +3,18 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Clausules = RSat.Core.ClausuleSet;
-//System.Collections.Generic.List<System.Collections.Immutable.ImmutableList<RSat.Core.Literal>>;
-//using ImmutableClausules =
-//System.Collections.Immutable.ImmutableList<System.Collections.Immutable.ImmutableList<RSat.Core.Literal>>;
-using VariablesMap = System.Collections.Immutable.ImmutableDictionary<string, RSat.Core.Variable>;
+
 //Naive, inefficient (LINQ, Immutable collections), dirty.
 namespace RSat.Core
 {
   public static class SimpleDPLLStrategy
   {
-    public static Model? Solve(Clausules clausules,
-                               VariablesMap variablesMap)
+    public static Model? Solve(ClauseSet initialClauses,
+                               Variables variablesMap)
     {
-      if (clausules == null)
+      if (initialClauses == null)
       {
-        throw new ArgumentNullException(nameof(clausules));
+        throw new ArgumentNullException(nameof(initialClauses));
       }
 
       if (variablesMap == null)
@@ -28,10 +24,10 @@ namespace RSat.Core
 
       const int INITIAL_LEVEL = 0;
 
-      preprocessClausules(clausules);
+      //preprocessClausules(initialClauses);
    
       var solverStack = ImmutableStack<SolverState>.Empty;
-      var initialSolverState = new SolverState(clausules,
+      var initialSolverState = new SolverState(initialClauses,
                                                variablesMap,
                                                INITIAL_LEVEL,
                                                true);
@@ -43,39 +39,40 @@ namespace RSat.Core
         solverStack = solverStack.Pop(out var currentState);
         Trace.WriteLine($"Iteration depth: {currentState.Depth}");
 
-        var clausuleSet = currentState.Clausules;
+        var clauses = currentState.Clauses;
+        var variables = currentState.VariablesMap;
 
-        
-        if (isConsistentSetOfLiterals(clausuleSet))
+
+        if (isConsistentSetOfLiterals(clauses))
         {
           Trace.WriteLine("Found model...");
-          return new Model(0, generateModelValues(clausuleSet, currentState.VariablesMap));
+          return new Model(0, generateModelValues(clauses, variables));
         }
 
-        if (hasEmptyClausule(clausuleSet))
+        if (hasEmptyClause(clauses))
         {
-          Trace.WriteLine("Empty clausule found. Backtracking...");
+          Trace.WriteLine("Empty clause found. Backtracking...");
           continue;
         }
 
-        if (hasContradictions(clausules))
+        if (hasContradictions(clauses))
         {
           Trace.WriteLine("Contradiction found. No model...");
         }
 
 
-        var (afterPropagateClausule, afterPropagateVariableMap) = propagateUnitClausules(clausuleSet, currentState.VariablesMap);
-        var (afterPureLiteralClausule, afterPureLiteralVariableMap) = handlePureLiterals(afterPropagateClausule, afterPropagateVariableMap);
+        var unitClausePropagated = propagateUnitClauses(clauses, variables);
+         var pureLiteralsProcessed = handlePureLiterals(clauses, variables);
 
 
-        afterPureLiteralClausule = afterPureLiteralClausule.Clone();
-        var chosenLiteral = chooseNewLiteral(afterPureLiteralClausule,
-                                             afterPureLiteralVariableMap);
+        var chosenLiteral = chooseNewLiteral(clauses,
+                                             variables);
 
 
 
         var somethingChanged = chosenLiteral != null ||
-                               !ReferenceEquals(afterPureLiteralVariableMap, currentState.VariablesMap);
+                                unitClausePropagated ||
+                                pureLiteralsProcessed;
 
         if (!somethingChanged && !currentState.SomethingChangedInPreviousIteration)
         {
@@ -88,8 +85,8 @@ namespace RSat.Core
           Trace.WriteLine($"Out of literals");
           solverStack =
             solverStack.Push(new
-                               SolverState(afterPureLiteralClausule.Clone(),
-                                           afterPureLiteralVariableMap,
+                               SolverState(clauses.Clone(),
+                                           variablesMap.Clone(),
                                            currentState.Depth + 1,
                                            false)
                                {
@@ -100,19 +97,19 @@ namespace RSat.Core
         {
           Trace.WriteLine($"Chosen literal {chosenLiteral.Name}");
 
-          var newClausulesNeg = afterPureLiteralClausule.CloneWithClausule(new Clausule(new List<Literal> { ~chosenLiteral }));
-          var newClausulesPos = afterPureLiteralClausule.CloneWithClausule(new Clausule(new List<Literal> { chosenLiteral }));
+          var newClauseNeg = clauses.CloneWithClause(new Clause(new List<Literal>{~chosenLiteral}));
+          var newClausePos = clauses.CloneWithClause(new Clause(new List<Literal>{chosenLiteral}));
 
 
           solverStack =
             solverStack.Push(new
-                               SolverState(newClausulesNeg,
-                                           afterPureLiteralVariableMap,
+                               SolverState(newClauseNeg,
+                                           variablesMap.Clone(),
                                            currentState.Depth + 1,
                                           true));
           solverStack = solverStack.Push(new
-                                           SolverState(newClausulesPos,
-                                                       afterPureLiteralVariableMap,
+                                           SolverState(newClausePos,
+                                                       variablesMap.Clone(),
                                                        currentState.Depth + 1,
                                                       true));
         }
@@ -121,127 +118,128 @@ namespace RSat.Core
       return null;
     }
 
-    private static void preprocessClausules(ClausuleSet clausules)
+    private static void preprocessClausules(ClauseSet clausules)
     {
       clausules.DeleteTautologies();
     }
 
-    private static bool hasContradictions(ClausuleSet clausules)
+    private static bool hasContradictions(ClauseSet clauses)
     {
-      return clausules.IsContradiction();
+      return clauses.IsContradiction();
     }
 
-    private static IEnumerable<ModelValue> generateModelValues(Clausules clausulesSet,
-                                                               VariablesMap variablesMap)
+    private static IEnumerable<ModelValue> generateModelValues(ClauseSet clausesSet,
+                                                               Variables variablesMap)
     {
-      var modelValues = clausulesSet.Clausules.Select(clausule =>
+      var modelValues = clausesSet.Clauses.Select(clause =>
                       {
-                        var literal = clausule.FirstLiteral;
+                        var literal = clause.FirstLiteral;
                         return new ModelValue(literal.Name, literal.IsTrue);
                       }).Distinct().ToArray();
 
       var retModelValues = modelValues.Concat(variablesMap
-                                              .Keys.Where(varName => !modelValues.Any(modelValue =>
+                                              .VariableNames().Where(varName => !modelValues.Any(modelValue =>
                                                                                         modelValue
                                                                                           .Name.Equals(varName)))
                                               .Select(varName => new ModelValue(varName, true))).ToArray();
       return retModelValues;
     }
 
-    private static Literal? chooseNewLiteral(Clausules clausules,
-                                           ImmutableDictionary<string, Variable> variablesMap)
+    private static Literal? chooseNewLiteral(ClauseSet clauses,
+                                           Variables variablesMap)
     {
-      var selectedLiteral = clausules.SelectUnusedLiteral(variablesMap);
+      var selectedLiteral = clauses.SelectUnusedLiteral(variablesMap);
 
       return selectedLiteral;
     }
 
-    private static (Clausules, VariablesMap) handlePureLiterals(Clausules clausules,
-                                                ImmutableDictionary<string, Variable> variablesMap)
+    private static bool handlePureLiterals(ClauseSet clauses,
+                                                Variables variablesMap)
     {
-      var pureLiteralsInClausules = clausules.GetPureLiterals();
-      var newVariablesMap = variablesMap;
-      foreach (var pureLiteral in pureLiteralsInClausules)
+      var pureLiteralsInClauses = clauses.GetPureLiterals(variablesMap);
+      var hasPureLiterals = false;
+      foreach (var pureLiteral in pureLiteralsInClauses)
       {
         Trace.WriteLine($"Trying pure literal strategy: {pureLiteral}");
-        newVariablesMap = newVariablesMap.SetItem(pureLiteral.Name, pureLiteral.IsTrue
-          ? variablesMap[pureLiteral.Name].TryTrueValue()
-          : variablesMap[pureLiteral.Name].TryFalseValue());
+        variablesMap.SetToValue(pureLiteral.Name, pureLiteral.IsTrue);
 
-        removeClausulesSatisfiedByLiteral(clausules, pureLiteral);
+        hasPureLiterals = true;
+        removeClausulesSatisfiedByLiteral(clauses, pureLiteral);
+        clauses.AddClause(new Clause(new List<Literal> {pureLiteral}));
+        Console.WriteLine($"Remaining ClausesSet: {clauses.ClausesCount}");
       }
 
-      return (clausules, newVariablesMap);
+      return hasPureLiterals;
 
     }
 
-    private static void removeClausulesSatisfiedByLiteral(Clausules clausules,
+    private static void removeClausulesSatisfiedByLiteral(ClauseSet clausules,
                                                                  Literal literal)
     {
       Trace.WriteLine($"Deleting clausules with literal: {literal}");
-      clausules.DeleteClausulesContainingLiteral(literal);
-      Console.WriteLine($"Remaining ClausulesSet: {clausules.ClausulesCount}");
+      clausules.DeleteClausesWithLiteral(literal);
+      Console.WriteLine($"Remaining ClausulesSet: {clausules.ClausesCount}");
     }
 
-    private static bool hasEmptyClausule(Clausules clausules)
+    private static bool hasEmptyClause(ClauseSet clauses)
     {
-      return clausules.HasEmptyClausule();
+      return clauses.HasEmptyClause();
     }
 
-    private static (Clausules, VariablesMap) propagateUnitClausules(Clausules clausules,
-                                                    ImmutableDictionary<string, Variable> variablesMap)
+    private static bool propagateUnitClauses(ClauseSet clauses,
+                                             Variables variablesMap)
     {
-      var newClausules = clausules;
-      var newVariableMap = variablesMap;
+
+      var unitClausuleProcessed = false;
       while (true)
       {
-        var toPropagateUnitClausule = newClausules.SelectUnitClausule(newVariableMap);
-        if (toPropagateUnitClausule == null)
+        var toPropagateUnitClause = clauses.SelectUnitClause(variablesMap);
+        if (toPropagateUnitClause == null)
         {
           break;
         }
 
-        var singleLiteral = toPropagateUnitClausule.FirstLiteral;
-        Trace.WriteLine($"Trying unit propagation of the clausules with literal: {singleLiteral}");
+        unitClausuleProcessed = true;
 
-        newVariableMap = newVariableMap.SetItem(singleLiteral.Name, singleLiteral.IsTrue
-                                                  ? variablesMap[singleLiteral.Name].TryTrueValue()
-                                                  : variablesMap[singleLiteral.Name].TryFalseValue());
+        var singleLiteral = toPropagateUnitClause.FirstLiteral;
+        Trace.WriteLine($"Trying unit propagation of the clause with literal: {singleLiteral}");
 
-        newClausules.DeleteLiteralFromClausules(~singleLiteral);
-        removeClausulesSatisfiedByLiteral(newClausules, singleLiteral);
+        variablesMap.SetToValue(singleLiteral.Name, singleLiteral.IsTrue);
+        removeClausulesSatisfiedByLiteral(clauses, singleLiteral);
+        clauses.AddClause(toPropagateUnitClause);
+        clauses.DeleteLiteralFromClauses(~singleLiteral);
       }
 
-      return (newClausules, newVariableMap);
+      return unitClausuleProcessed;
     }
 
 
-    private static bool isConsistentSetOfLiterals(Clausules clausules)
+    private static bool isConsistentSetOfLiterals(ClauseSet clauses)
     {
-      return clausules.IsConsistentSetOfLiterals();
+      return clauses.IsConsistentSetOfLiterals();
     }
 
 
     private struct SolverState
     {
-      public SolverState(Clausules clausules,
-                         ImmutableDictionary<string, Variable> variablesMap,
+      public SolverState(ClauseSet clauses,
+                         Variables variablesMap,
                          int depth,
                          bool literalAdded)
       {
-        Clausules = clausules;
+        Clauses = clauses;
         VariablesMap = variablesMap;
         Depth = depth;
         LiteralAdded = literalAdded;
         SomethingChangedInPreviousIteration = true;
       }
 
-      public Clausules Clausules
+      public ClauseSet Clauses
       {
         get;
       }
 
-      public VariablesMap VariablesMap
+      public Variables VariablesMap
       {
         get;
       }
@@ -261,6 +259,7 @@ namespace RSat.Core
         get;
         set;
       }
+
     }
   }
 }

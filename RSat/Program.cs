@@ -13,8 +13,8 @@ namespace RSat
       //runSimpleSolver();
       //SudokuEngine.Run();
       //SudokuEngine.RunSudoku1();
-      //SudokuEngine.RunNotFunSudoku();
-      SudokuEngine.RunMisaSudoku();
+      SudokuEngine.RunNotFunSudoku();
+      //SudokuEngine.RunMisaSudoku();
       //solveMoreFormulas();
 
       Console.ReadLine();
@@ -29,14 +29,14 @@ namespace RSat
       solver.CreateVariable("D");
       solver.CreateVariable("E");
       solver.CreateVariable("F");
-      solver.AddClausule(~solver.GetVariable("A"), solver.GetVariable("B"), solver.GetVariable("E"));
-      solver.AddClausule(solver.GetVariable("A"), ~solver.GetVariable("B"));
-      solver.AddClausule(solver.GetVariable("A"), ~solver.GetVariable("E"));
-      solver.AddClausule(~solver.GetVariable("E"), solver.GetVariable("D"));
-      solver.AddClausule(~solver.GetVariable("C"), ~solver.GetVariable("F"), ~solver.GetVariable("B"));
-      solver.AddClausule(~solver.GetVariable("E"), solver.GetVariable("B"));
-      solver.AddClausule(~solver.GetVariable("B"), solver.GetVariable("F"));
-      solver.AddClausule(~solver.GetVariable("B"), solver.GetVariable("C"));
+      solver.AddClause(~solver.GetVariable("A"), solver.GetVariable("B"), solver.GetVariable("E"));
+      solver.AddClause(solver.GetVariable("A"), ~solver.GetVariable("B"));
+      solver.AddClause(solver.GetVariable("A"), ~solver.GetVariable("E"));
+      solver.AddClause(~solver.GetVariable("E"), solver.GetVariable("D"));
+      solver.AddClause(~solver.GetVariable("C"), ~solver.GetVariable("F"), ~solver.GetVariable("B"));
+      solver.AddClause(~solver.GetVariable("E"), solver.GetVariable("B"));
+      solver.AddClause(~solver.GetVariable("B"), solver.GetVariable("F"));
+      solver.AddClause(~solver.GetVariable("B"), solver.GetVariable("C"));
 
       if (solver.Solve())
       {
@@ -54,22 +54,22 @@ namespace RSat
       var solver = new Sat(SimpleDPLLStrategy.Solve);
       solver.CreateVariable("A");
       solver.CreateVariable("B");
-      solver.AddClausule(solver.GetVariable("B"));
-      solver.AddClausule(~solver.GetVariable("A"), ~solver.GetVariable("B"), solver.GetVariable("A"));
-      solver.AddClausule(~solver.GetVariable("B"), ~solver.GetVariable("A"));
+      solver.AddClause(solver.GetVariable("B"));
+      solver.AddClause(~solver.GetVariable("A"), ~solver.GetVariable("B"), solver.GetVariable("A"));
+      solver.AddClause(~solver.GetVariable("B"), ~solver.GetVariable("A"));
 
-      //solver.AddClausule(solver.GetVariable("B"));
-      //solver.AddClausule(solver.GetVariable("A"));
-      //solver.AddClausule(solver.GetVariable("A"));
-      //solver.AddClausule(solver.GetVariable("A"),  ~solver.GetVariable("B"));
-      // solver.AddClausule(~solver.GetVariable("A"),  solver.GetVariable("B"));
+      //solver.AddClause(solver.GetVariable("B"));
+      //solver.AddClause(solver.GetVariable("A"));
+      //solver.AddClause(solver.GetVariable("A"));
+      //solver.AddClause(solver.GetVariable("A"),  ~solver.GetVariable("B"));
+      // solver.AddClause(~solver.GetVariable("A"),  solver.GetVariable("B"));
       ////solver.CreateVariable("C");
       //////solver.CreateVariable("D");
-      ////solver.AddClausule(solver.GetVariable("A"), solver.GetVariable("B"), ~solver.GetVariable("A"));
-      ////solver.AddClausule(solver.GetVariable("A"), solver.GetVariable("B"), ~solver.GetVariable("C"));
-      //solver.AddClausule(solver.GetVariable("D"));
-      //solver.AddClausule(solver.GetVariable("C"));
-      //solver.AddClausule(~solver.GetVariable("C"), ~solver.GetVariable("D"));
+      ////solver.AddClause(solver.GetVariable("A"), solver.GetVariable("B"), ~solver.GetVariable("A"));
+      ////solver.AddClause(solver.GetVariable("A"), solver.GetVariable("B"), ~solver.GetVariable("C"));
+      //solver.AddClause(solver.GetVariable("D"));
+      //solver.AddClause(solver.GetVariable("C"));
+      //solver.AddClause(~solver.GetVariable("C"), ~solver.GetVariable("D"));
       if (solver.Solve())
       {
         Console.WriteLine("Model found!");
