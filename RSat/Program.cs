@@ -26,7 +26,7 @@ namespace RSat
 
     private static async Task solveHard250Sample()
     {
-      var sat = await Sat.FromFile(Path.Combine("../../../../", "RSat.Test/DIMACS_Samples/hard/ignore_sat250.cnf"))
+      var sat = await Sat.FromFile(Path.Combine("../../../../", "RSat.Test/DIMACS_Samples/hard/example1.cnf"))
                          .ConfigureAwait(false);
       if (sat.Solve())
       {

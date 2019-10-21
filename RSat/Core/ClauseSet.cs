@@ -9,6 +9,7 @@ namespace RSat.Core
     public ClauseSet(List<Clause> clauses)
     {
       Clauses = clauses ?? throw new ArgumentNullException(nameof(clauses));
+      
     }
 
     public bool HasClauses => Clauses.Count != 0;
@@ -113,10 +114,10 @@ namespace RSat.Core
           }
           else
           {
-            //if (clause.IsUnitClause())
-            //{
-            //  continue;
-            //}
+            if (clause.IsUnitClause())
+            {
+              continue;
+            }
 
             pureCandidates[currentLiteral.Name] = currentLiteral.IsTrue
               ? PureLiteralResult.PureTrue

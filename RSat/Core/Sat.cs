@@ -56,7 +56,19 @@ namespace RSat.Core
 
     public bool Solve()
     {
+      _clauses.Sort((clause1, clause2) =>
+      {
+        return (clause1.Literals.Count, clause2.Literals.Count) switch
+        {
+          var (count1, count2) when (count1 == count2) => 0,
+          var (count1, count2) when (count1 > count2) => 1,
+          var (count1, count2) when (count1 < count2) => -1,
+          _ => throw new InvalidOperationException()
+        };
+      });
+
       _clauseSet = new ClauseSet(_clauses);
+
       FoundModel = _solverStrategy(_clauseSet, _variablesMap);
       return FoundModel != null;
     }
@@ -74,6 +86,6 @@ namespace RSat.Core
                                        FileShare.Read));
     }
 
-    
+
   }
 }
