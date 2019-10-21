@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 
 namespace RSat.Core
@@ -120,30 +119,34 @@ namespace RSat.Core
       return pureLiterals;
     }
 
-    public void DeleteComplexSatisfiedClausulesContainingLiteral(Literal pureLiteral)
+    public void DeleteClausulesContainingLiteral(Literal literal)
     {
       for (int i = 0; i < Clausules.Count; i++)
       {
         var clausule = Clausules[i];
         
-        if (clausule.HasLiteral(pureLiteral))
+        if (clausule.HasLiteral(literal))
         {
           Clausules.Remove(clausule);
         }
       }
-
     }
 
+    public ClausuleSet AddClausule(Clausule clausule)
+    {
+      Clausules.Add(clausule);
+      return this;
+    }
     public ClausuleSet CloneWithClausule(Clausule clausule)
     {
-      var clonedCalusules = cloneInternal();
+      var clonedClausules = cloneInternal();
 
       if (clausule != null)
       {
-        clonedCalusules.Add(clausule);
+        clonedClausules.Add(clausule);
       }
 
-      return new ClausuleSet(clonedCalusules);
+      return new ClausuleSet(clonedClausules);
     }
 
     public ClausuleSet Clone()
@@ -179,6 +182,12 @@ namespace RSat.Core
 
       return false;
     }
+
+    public void DeleteTautologies()
+    {
+      Clausules.RemoveAll(clausule => clausule.IsTautology());
+    }
+
     private bool hasOnlyConsistentLiterals()
     {
       var dictionary = new Dictionary<string, Literal>();
