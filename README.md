@@ -3,6 +3,7 @@ A toy implementation of a simple SAT solver in the C#.
 * Supports DIMACS format
 * Simple Sudoku solver
 
+Solving problem described in the DIMACS file.
 ``` 
  var sat = await Sat.FromFile(dimacsFilePath).ConfigureAwait(false);
 
@@ -19,7 +20,7 @@ Hard sudoku, try it. :)
 ![Sudoku](https://snipboard.io/CfnwtH.jpg "Sudoku")
 
 
-Encoding Sudoku rules
+Encoding Sudoku rules.
 ```
     public static void RunNotFunSudoku()
     {
