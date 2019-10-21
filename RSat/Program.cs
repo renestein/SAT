@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
+using System.Reflection.Metadata;
+using System.Threading.Tasks;
 using RSat.Core;
 using RSat.Sudoku;
 
@@ -13,11 +16,22 @@ namespace RSat
       //runSimpleSolver();
       //SudokuEngine.Run();
       //SudokuEngine.RunSudoku1();
-      SudokuEngine.RunNotFunSudoku();
+      //SudokuEngine.RunNotFunSudoku();
       //SudokuEngine.RunMisaSudoku();
       //solveMoreFormulas();
+      solveHard250Sample().Wait();
 
       Console.ReadLine();
+    }
+
+    private static async Task solveHard250Sample()
+    {
+      var sat = await Sat.FromFile(Path.Combine("../../../../", "RSat.Test/DIMACS_Samples/hard/ignore_sat250.cnf"))
+                         .ConfigureAwait(false);
+      if (sat.Solve())
+      {
+        Console.WriteLine(sat.FoundModel);
+      }
     }
 
     private static void solveMoreFormulas()
