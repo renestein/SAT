@@ -14,14 +14,15 @@ namespace RSat.Core
     private readonly List<Clause> _clauses;
 
     private readonly Func<ClauseSet, Variables, Model?> _solverStrategy;
-
-    private Variables _variablesMap;
+    private readonly Variables _variablesMap;
+    private Dictionary<string, LiteralsToClausesMap> _varClausesMap;
 
     public Sat(Func<ClauseSet, Variables, Model?> solverStrategy)
     {
       _solverStrategy = solverStrategy ?? throw new ArgumentNullException(nameof(solverStrategy));
       _variablesMap = new Variables();
       _clauses = new List<Clause>();
+      _varClausesMap = new Dictionary<string, LiteralsToClausesMap>();
     }
 
     public Sat() : this(NaiveSolverStrategy.Solve)
@@ -36,6 +37,12 @@ namespace RSat.Core
 
     public Variable CreateVariable(string name)
     {
+      if (string.IsNullOrWhiteSpace(name))
+      {
+        throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+      }
+
+      _varClausesMap.Add(name, new LiteralsToClausesMap(name));
       return _variablesMap.Add(name);
     }
 
@@ -51,7 +58,19 @@ namespace RSat.Core
         throw new ArgumentNullException(nameof(literals));
       }
 
-      _clauses.Add(new Clause(literals.ToList()));
+      var clause = new Clause(literals.ToList());
+      _clauses.Add(clause);
+      foreach (var literal in literals)
+      {
+        if (literal.IsTrue)
+        {
+          _varClausesMap[literal.Name].ClausesWithPositiveLiterals.Add(clause);
+        }
+        else
+        {
+          _varClausesMap[literal.Name].ClausesWithNegativeLiterals.Add(clause);
+        }
+      }
     }
 
     public bool Solve()
@@ -67,7 +86,7 @@ namespace RSat.Core
         };
       });
 
-      _clauseSet = new ClauseSet(_clauses, _variablesMap.VariableNames().ToArray());
+      _clauseSet = new ClauseSet(_clauses, _varClausesMap,  _varClausesMap.Keys.ToArray());
 
       FoundModel = _solverStrategy(_clauseSet, _variablesMap);
       return FoundModel != null;

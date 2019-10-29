@@ -8,19 +8,30 @@ namespace RSat.Core
   public partial class ClauseSet
   {
     private readonly IEnumerable<string> _variableNames;
-    private readonly Dictionary<string, ClausesWithVariable> _clausesByLiterals;
+    private readonly Dictionary<string, LiteralsToClausesMap> _clausesByLiterals;
 
     public ClauseSet(List<Clause> clauses,
                      IEnumerable<string> variableNames)
     {
       _variableNames = variableNames;
       Clauses = clauses ?? throw new ArgumentNullException(nameof(clauses));
+      DeleteTautologies();
       _clausesByLiterals = prepareClauses(Clauses, _variableNames);
     }
 
-    private ClauseSet(List<Clause> clonedClauses,
-                      Dictionary<string, ClausesWithVariable> varClausesMap,
-                      IEnumerable<string> variableNames)
+    public ClauseSet(List<Clause> clonedClauses,
+                     Dictionary<string, LiteralsToClausesMap> varClausesMap,
+                     IEnumerable<string> variableNames) : this(clonedClauses,
+                                                               varClausesMap,
+                                                               variableNames,
+                                                               preprocessFormula: true)
+    {
+    }
+
+    public ClauseSet(List<Clause> clonedClauses,
+                     Dictionary<string, LiteralsToClausesMap> varClausesMap,
+                     IEnumerable<string> variableNames,
+                     bool preprocessFormula)
     {
       Clauses = clonedClauses ?? throw new ArgumentNullException(nameof(clonedClauses));
       _clausesByLiterals = varClausesMap ?? throw new ArgumentNullException(nameof(varClausesMap));
@@ -159,7 +170,8 @@ namespace RSat.Core
 
       return new ClauseSet(clonedClauses,
                            varClausesMap,
-                           _variableNames);
+                           _variableNames,
+                           preprocessFormula: false);
     }
 
     public ClauseSet Clone()
@@ -167,7 +179,8 @@ namespace RSat.Core
       var (clauses, varClausesMap) = cloneInternal();
       return new ClauseSet(clauses,
                            varClausesMap,
-                           _variableNames);
+                           _variableNames,
+                           preprocessFormula: false);
     }
 
     public bool IsContradiction()
@@ -180,7 +193,7 @@ namespace RSat.Core
       Clauses.RemoveAll(clausule => clausule.IsTautology());
     }
 
-    private Dictionary<string, ClausesWithVariable> prepareClauses(List<Clause> clauses,
+    private Dictionary<string, LiteralsToClausesMap> prepareClauses(List<Clause> clauses,
                                 IEnumerable<string> variables)
     {
       return variables.Select(varName =>
@@ -190,7 +203,7 @@ namespace RSat.Core
 
         var positiveClauses = clauses.Where(clause => clause.HasLiteral(positiveLiteral)).ToList();
         var negativeClauses = clauses.Where(clause => clause.HasLiteral(negativeLiteral)).ToList();
-        return new ClausesWithVariable(varName, positiveClauses, negativeClauses);
+        return new LiteralsToClausesMap(varName, positiveClauses, negativeClauses);
       }).ToDictionary(arg => arg.VariableName);
 
     }
@@ -224,12 +237,12 @@ namespace RSat.Core
       return true;
     }
 
-    private (List<Clause> Clauses, Dictionary<string, ClausesWithVariable> VarClausesMap) cloneInternal()
+    private (List<Clause> Clauses, Dictionary<string, LiteralsToClausesMap> VarClausesMap) cloneInternal()
     {
       var newClauses = new List<Clause>();
       var newVarClausesMap = _clausesByLiterals.ToDictionary(pair => pair.Key,
                                                              pair =>
-                                                               new ClausesWithVariable(pair.Key, new List<Clause>(),
+                                                               new LiteralsToClausesMap(pair.Key, new List<Clause>(),
                                                                                        new List<Clause>()));
       for (var i = 0; i < Clauses.Count; i++)
       {
@@ -249,53 +262,6 @@ namespace RSat.Core
       }
 
       return (newClauses, newVarClausesMap);
-    }
-
-    private class ClausesWithVariable
-    {
-      public ClausesWithVariable(string variableName,
-                                 List<Clause> clausesWithPositiveLiterals,
-                                 List<Clause> clausesWithNegativeLiterals)
-      {
-        VariableName = variableName;
-        ClausesWithPositiveLiterals = clausesWithPositiveLiterals;
-        ClausesWithNegativeLiterals = clausesWithNegativeLiterals;
-      }
-
-      public string VariableName
-      {
-        get;
-      }
-
-      public List<Clause> ClausesWithPositiveLiterals
-      {
-        get;
-      }
-
-      public List<Clause> ClausesWithNegativeLiterals
-      {
-        get;
-      }
-
-      public Literal? TryGetPureLiteral(Variables variables)
-      {
-
-        if (ClausesWithPositiveLiterals.Count == 0 && ClausesWithNegativeLiterals.Count > 1)
-        {
-          return ClausesWithNegativeLiterals.Count == 1 && ClausesWithNegativeLiterals[0].IsUnitClause()
-            ? null
-            : ~variables[VariableName];
-        }
-
-        if (ClausesWithNegativeLiterals.Count == 0 && ClausesWithPositiveLiterals.Count > 1)
-        {
-          return ClausesWithPositiveLiterals.Count == 1 && ClausesWithPositiveLiterals[0].IsUnitClause()
-            ? null
-            : (Literal)variables[VariableName];
-        }
-
-        return null;
-      }
     }
 
     [Flags]

@@ -17,7 +17,7 @@ namespace RSat
       //SudokuEngine.Run();
       //SudokuEngine.RunSudoku1();
       SudokuEngine.RunNotFunSudoku();
-     //SudokuEngine.RunMisaSudoku();
+      //SudokuEngine.RunMisaSudoku();
       //solveMoreFormulas();
       //solveHard250Sample().Wait();
 

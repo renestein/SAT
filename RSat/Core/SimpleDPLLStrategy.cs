@@ -24,8 +24,6 @@ namespace RSat.Core
 
       const int INITIAL_LEVEL = 0;
 
-      preprocessClausules(initialClauses);
-
       var solverStack = ImmutableStack<SolverState>.Empty;
       var initialSolverState = new SolverState(initialClauses,
                                                variablesMap,
@@ -121,11 +119,6 @@ namespace RSat.Core
       }
 
       return null;
-    }
-
-    private static void preprocessClausules(ClauseSet clausules)
-    {
-      clausules.DeleteTautologies();
     }
 
     private static bool hasContradictions(ClauseSet clauses)
