@@ -1,4 +1,6 @@
-A toy implementation of a simple SAT solver in the C#. 
+A toy implementation of a simple SAT solver in the C#.
+
+[![Build Status](https://dev.azure.com/rene0884/RSat/_apis/build/status/renestein.SAT?branchName=master)](https://dev.azure.com/rene0884/RSat/_build/latest?definitionId=1&branchName=master)
 * Supports DPLL algorithm.
 * Supports DIMACS format
 * Simple Sudoku solver
