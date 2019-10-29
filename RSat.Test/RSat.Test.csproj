@@ -13,11 +13,11 @@
     <None Remove="DIMACS_Samples\easy\sat_4.cnf" />
     <None Remove="DIMACS_Samples\easy\unsat_4.txt" />
     <None Remove="DIMACS_Samples\hard\ignore_example1.cnf" />
+    <None Remove="DIMACS_Samples\hard\ignore_sat100.cnf" />
+    <None Remove="DIMACS_Samples\hard\ignore_sat2.cnf" />
     <None Remove="DIMACS_Samples\hard\ignore_sat250.cnf" />
     <None Remove="DIMACS_Samples\hard\ignore_unsat250.cnf" />
     <None Remove="DIMACS_Samples\hard\sat1.cnf" />
-    <None Remove="DIMACS_Samples\hard\sat100.cnf" />
-    <None Remove="DIMACS_Samples\hard\sat2.cnf" />
   </ItemGroup>
 
   <ItemGroup>
@@ -48,10 +48,10 @@
     <Content Include="DIMACS_Samples\hard\sat1.cnf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="DIMACS_Samples\hard\sat100.cnf">
+    <Content Include="DIMACS_Samples\hard\ignore_sat100.cnf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="DIMACS_Samples\hard\sat2.cnf">
+    <Content Include="DIMACS_Samples\hard\ignore_sat2.cnf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
