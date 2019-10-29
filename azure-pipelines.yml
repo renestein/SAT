@@ -29,12 +29,12 @@ steps:
   inputs:
     command: test
     projects: '**/*Test/*.csproj'
-    arguments: '--configuration $(buildConfiguration)'
+    arguments: '--configuration $(buildConfiguration) --logger "trx;LogFileName=RSat.Test.xml"'
 
 - task: PublishTestResults@2
   inputs:
-    testResultsFormat: 'NUnit'
-    testResultsFiles: '**/Test-*.xml'
+    testResultsFormat: 'nunit'
+    testResultsFiles: '**/*Test*.xml'
     mergeTestResults: true
     buildPlatform: '$(buildPlatform)'
     buildConfiguration: '$(buildConfiguration)'
