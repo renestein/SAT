@@ -43,7 +43,7 @@ namespace RSat.Core
       return Value == other.Value && Name == other.Name;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
       return obj is Variable other && Equals(other);
     }

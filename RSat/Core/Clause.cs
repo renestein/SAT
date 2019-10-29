@@ -88,9 +88,9 @@ namespace RSat.Core
       return new Clause(Literals.ToList());
     }
 
-    public bool HasLiteral(Literal pureLiteral)
+    public bool HasLiteral(Literal literal)
     {
-      return getLiteralIndex(pureLiteral) >= 0;
+      return getLiteralIndex(literal) >= 0;
     }
 
     //Assume sorted literals

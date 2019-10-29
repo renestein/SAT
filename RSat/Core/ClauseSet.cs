@@ -2,15 +2,31 @@
 using System.Collections.Generic;
 using System.Linq;
 
+
 namespace RSat.Core
 {
   public partial class ClauseSet
   {
-    public ClauseSet(List<Clause> clauses)
+    private readonly IEnumerable<string> _variableNames;
+    private readonly Dictionary<string, ClausesWithVariable> _clausesByLiterals;
+
+    public ClauseSet(List<Clause> clauses,
+                     IEnumerable<string> variableNames)
     {
+      _variableNames = variableNames;
       Clauses = clauses ?? throw new ArgumentNullException(nameof(clauses));
-      
+      _clausesByLiterals = prepareClauses(Clauses, _variableNames);
     }
+
+    private ClauseSet(List<Clause> clonedClauses,
+                      Dictionary<string, ClausesWithVariable> varClausesMap,
+                      IEnumerable<string> variableNames)
+    {
+      Clauses = clonedClauses ?? throw new ArgumentNullException(nameof(clonedClauses));
+      _clausesByLiterals = varClausesMap ?? throw new ArgumentNullException(nameof(varClausesMap));
+      _variableNames = variableNames ?? throw new ArgumentNullException(nameof(variableNames));
+    }
+
 
     public bool HasClauses => Clauses.Count != 0;
     public int ClausesCount => Clauses.Count;
@@ -22,24 +38,18 @@ namespace RSat.Core
       get;
     }
 
-    public Clause SelectUnitClause(Variables variablesMap)
+    public Clause? SelectUnitClause(Variables variablesMap)
     {
-      return Clauses.FirstOrDefault(clause => clause.IsUnitClause()
-                                              && !variablesMap[clause.FirstLiteral.Name].HasValue);
+      return Clauses.FirstOrDefault(clause => clause.IsUnitClause() &&
+                                              !variablesMap[clause.FirstLiteral.Name].HasValue);
     }
 
     public Literal? SelectUnusedLiteral(Variables variablesMap)
     {
-      for (var i = 0; i < Clauses.Count; i++)
-      {
-        var selectedLiteral = Clauses[i].SelectUnusedLiteral(variablesMap);
-        if (selectedLiteral != null)
-        {
-          return selectedLiteral;
-        }
-      }
-
-      return null;
+      var varName = _clausesByLiterals.Keys.FirstOrDefault(variableName => !variablesMap.HasValueFor(variableName));
+      return varName == null
+             ? null
+             : (Literal)variablesMap[varName];
     }
 
     public void AddClause(Clause clause)
@@ -49,22 +59,51 @@ namespace RSat.Core
         throw new ArgumentNullException(nameof(clause));
       }
 
-      Clauses.Add(clause);
+      foreach (var literal in clause.Literals)
+      {
+        if (literal.IsTrue)
+        {
+
+          _clausesByLiterals[literal.Name].ClausesWithPositiveLiterals.Add(clause);
+        }
+        else
+        {
+          _clausesByLiterals[literal.Name].ClausesWithNegativeLiterals.Add(clause);
+        }
+
+        Clauses.Add(clause);
+      }
     }
+
 
     public ClauseOperationResult DeleteLiteralFromClauses(Literal literal)
     {
-      for (var i = 0; i < Clauses.Count; i++)
+
+      var literals = _clausesByLiterals[literal.Name];
+      bool haveEmptyClauses;
+      if (literal.IsTrue)
       {
-        var clause = Clauses[i];
-        clause.DeleteLiteral(literal);
-        if (clause.IsEmptyClause())
+        haveEmptyClauses = literals.ClausesWithPositiveLiterals.Select(clause =>
         {
-          return ClauseOperationResult.MinOneEmptyClausuleFound;
-        }
+          clause.DeleteLiteral(literal);
+          return clause.IsEmptyClause();
+        }).Any(emptyClauseFound => emptyClauseFound);
+
+        literals.ClausesWithPositiveLiterals.Clear();
+      }
+      else
+      {
+        haveEmptyClauses = literals.ClausesWithNegativeLiterals.Select(clause =>
+        {
+          clause.DeleteLiteral(literal);
+          return clause.IsEmptyClause();
+        }).Any(emptyClauseFound => emptyClauseFound);
+        literals.ClausesWithNegativeLiterals.Clear();
       }
 
-      return ClauseOperationResult.OperationSuccess;
+      return haveEmptyClauses
+                  ? ClauseOperationResult.MinOneEmptyClausuleFound
+                  : ClauseOperationResult.OperationSuccess;
     }
 
     public bool IsConsistentSetOfLiterals()
@@ -87,124 +126,75 @@ namespace RSat.Core
 
     public IEnumerable<Literal> GetPureLiterals(Variables variablesMap)
     {
-      var pureCandidates = new Dictionary<string, PureLiteralResult>();
-      for (var i = 0; i < Clauses.Count; i++)
-      {
-        var clause = Clauses[i];
-        if (clause.IsEmptyClause())
-        {
-          continue;
-        }
-
-        for (var j = 0; j < clause.Literals.Count; j++)
-        {
-          var currentLiteral = clause.Literals[j];
-          if (pureCandidates.TryGetValue(currentLiteral.Name, out var candidateValue))
-          {
-            if (candidateValue == PureLiteralResult.NoPure)
-            {
-              continue;
-            }
-
-            if (currentLiteral.IsTrue && candidateValue == PureLiteralResult.PureFalse ||
-                currentLiteral.IsFalse && candidateValue == PureLiteralResult.PureTrue)
-            {
-              pureCandidates[currentLiteral.Name] = PureLiteralResult.NoPure;
-            }
-          }
-          else
-          {
-            if (clause.IsUnitClause())
-            {
-              continue;
-            }
-
-            pureCandidates[currentLiteral.Name] = currentLiteral.IsTrue
-              ? PureLiteralResult.PureTrue
-              : PureLiteralResult.PureFalse;
-          }
-        }
-      }
-
-      var pureLiterals = new List<Literal>();
-      foreach (var pureLiteralResult in pureCandidates)
-      {
-        if (pureLiteralResult.Value == PureLiteralResult.PureFalse)
-        {
-          pureLiterals.Add(new Literal(pureLiteralResult.Key, false));
-        }
-        else if (pureLiteralResult.Value == PureLiteralResult.PureTrue)
-        {
-          pureLiterals.Add(new Literal(pureLiteralResult.Key, true));
-        }
-      }
-
-      return pureLiterals;
+      return _clausesByLiterals.Values
+                               .Select(varClauses => varClauses.TryGetPureLiteral(variablesMap))
+                               .Where(literal => literal != null)!;
     }
 
     public void DeleteClausesWithLiteral(Literal pureLiteral)
     {
-      for (var i = 0; i < Clauses.Count; i++)
-      {
-        var clause = Clauses[i];
 
-        if (clause.HasLiteral(pureLiteral))
-        {
-          Clauses.Remove(clause);
-        }
+      var varClausules = _clausesByLiterals[pureLiteral.Name];
+
+      var toDeleteClauses = pureLiteral.IsTrue
+        ? varClausules.ClausesWithPositiveLiterals
+        : varClausules.ClausesWithNegativeLiterals;
+
+      foreach (var deleteClause in toDeleteClauses)
+      {
+        Clauses.Remove(deleteClause);
       }
+
+      toDeleteClauses.Clear();
     }
 
     public ClauseSet CloneWithClause(Clause clause)
     {
-      var clonedClauses = cloneInternal();
+      var (clonedClauses, varClausesMap) = cloneInternal();
 
       if (clause != null)
       {
         clonedClauses.Add(clause);
       }
 
-      return new ClauseSet(clonedClauses);
+      return new ClauseSet(clonedClauses,
+                           varClausesMap,
+                           _variableNames);
     }
 
     public ClauseSet Clone()
     {
-      var clonedClausesBuilder = cloneInternal();
-      return new ClauseSet(clonedClausesBuilder);
+      var (clauses, varClausesMap) = cloneInternal();
+      return new ClauseSet(clauses,
+                           varClausesMap,
+                           _variableNames);
     }
 
     public bool IsContradiction()
     {
-      var seenLiterals = new Dictionary<string, bool>();
-      for (var i = 0; i < Clauses.Count; i++)
-      {
-        var clause = Clauses[i];
-        if (!clause.IsUnitClause())
-        {
-          continue;
-        }
-
-        var singleLiteral = clause.FirstLiteral;
-        if (seenLiterals.TryGetValue(singleLiteral.Name, out var currentLiteralValue))
-        {
-          if (currentLiteralValue != singleLiteral.IsTrue)
-          {
-            return true;
-          }
-        }
-        else
-        {
-          seenLiterals[singleLiteral.Name] = singleLiteral.IsTrue;
-        }
-      }
-
-      return false;
+      return Clauses.Any(clause => clause.IsEmptyClause());
     }
 
     public void DeleteTautologies()
     {
       Clauses.RemoveAll(clausule => clausule.IsTautology());
     }
+
+    private Dictionary<string, ClausesWithVariable> prepareClauses(List<Clause> clauses,
+                                IEnumerable<string> variables)
+    {
+      return variables.Select(varName =>
+      {
+        var positiveLiteral = new Literal(varName, true);
+        var negativeLiteral = new Literal(varName, false);
+
+        var positiveClauses = clauses.Where(clause => clause.HasLiteral(positiveLiteral)).ToList();
+        var negativeClauses = clauses.Where(clause => clause.HasLiteral(negativeLiteral)).ToList();
+        return new ClausesWithVariable(varName, positiveClauses, negativeClauses);
+      }).ToDictionary(arg => arg.VariableName);
+
+    }
+
 
     private bool hasOnlyConsistentLiterals()
     {
@@ -234,16 +224,78 @@ namespace RSat.Core
       return true;
     }
 
-    private List<Clause> cloneInternal()
+    private (List<Clause> Clauses, Dictionary<string, ClausesWithVariable> VarClausesMap) cloneInternal()
     {
       var newClauses = new List<Clause>();
+      var newVarClausesMap = _clausesByLiterals.ToDictionary(pair => pair.Key,
+                                                             pair =>
+                                                               new ClausesWithVariable(pair.Key, new List<Clause>(),
+                                                                                       new List<Clause>()));
       for (var i = 0; i < Clauses.Count; i++)
       {
         var clauseClone = Clauses[i].Clone();
+        foreach (var literal in clauseClone.Literals)
+        {
+          if (literal.IsTrue)
+          {
+            newVarClausesMap[literal.Name].ClausesWithPositiveLiterals.Add(clauseClone);
+          }
+          else
+          {
+            newVarClausesMap[literal.Name].ClausesWithNegativeLiterals.Add(clauseClone);
+          }
+        }
         newClauses.Add(clauseClone);
       }
 
-      return newClauses;
+      return (newClauses, newVarClausesMap);
+    }
+
+    private class ClausesWithVariable
+    {
+      public ClausesWithVariable(string variableName,
+                                 List<Clause> clausesWithPositiveLiterals,
+                                 List<Clause> clausesWithNegativeLiterals)
+      {
+        VariableName = variableName;
+        ClausesWithPositiveLiterals = clausesWithPositiveLiterals;
+        ClausesWithNegativeLiterals = clausesWithNegativeLiterals;
+      }
+
+      public string VariableName
+      {
+        get;
+      }
+
+      public List<Clause> ClausesWithPositiveLiterals
+      {
+        get;
+      }
+
+      public List<Clause> ClausesWithNegativeLiterals
+      {
+        get;
+      }
+
+      public Literal? TryGetPureLiteral(Variables variables)
+      {
+
+        if (ClausesWithPositiveLiterals.Count == 0 && ClausesWithNegativeLiterals.Count > 1)
+        {
+          return ClausesWithNegativeLiterals.Count == 1 && ClausesWithNegativeLiterals[0].IsUnitClause()
+            ? null
+            : ~variables[VariableName];
+        }
+
+        if (ClausesWithNegativeLiterals.Count == 0 && ClausesWithPositiveLiterals.Count > 1)
+        {
+          return ClausesWithPositiveLiterals.Count == 1 && ClausesWithPositiveLiterals[0].IsUnitClause()
+            ? null
+            : (Literal)variables[VariableName];
+        }
+
+        return null;
+      }
     }
 
     [Flags]

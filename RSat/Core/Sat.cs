@@ -67,7 +67,7 @@ namespace RSat.Core
         };
       });
 
-      _clauseSet = new ClauseSet(_clauses);
+      _clauseSet = new ClauseSet(_clauses, _variablesMap.VariableNames().ToArray());
 
       FoundModel = _solverStrategy(_clauseSet, _variablesMap);
       return FoundModel != null;
