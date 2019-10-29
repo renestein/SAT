@@ -2,7 +2,7 @@
 
 namespace RSat.Core
 {
-  public readonly struct Variable
+  public readonly struct Variable : IEquatable<Variable>
   {
     public Variable(string name) : this(name, null)
     {
@@ -38,5 +38,34 @@ namespace RSat.Core
 
     public static Literal operator ~(Variable variable) => new Literal(variable.Name, isTrue: false);
 
+    public bool Equals(Variable other)
+    {
+      return Value == other.Value && Name == other.Name;
+    }
+
+    public override bool Equals(object obj)
+    {
+      return obj is Variable other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+      unchecked
+      {
+        return (Value.GetHashCode() * 397) ^ (Name != null ? Name.GetHashCode() : 0);
+      }
+    }
+
+    public static bool operator ==(Variable left,
+                                   Variable right)
+    {
+      return left.Equals(right);
+    }
+
+    public static bool operator !=(Variable left,
+                                   Variable right)
+    {
+      return !left.Equals(right);
+    }
   }
 }
