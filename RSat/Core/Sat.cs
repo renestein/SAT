@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,17 +12,17 @@ namespace RSat.Core
   public class Sat
   {
     private ClauseSet? _clauseSet;
-    private readonly List<Clause> _clauses;
+    private readonly HashSet<Clause> _clauses;
 
     private readonly Func<ClauseSet, Variables, Model?> _solverStrategy;
     private readonly Variables _variablesMap;
-    private Dictionary<string, LiteralsToClausesMap> _varClausesMap;
+    private readonly Dictionary<string, LiteralsToClausesMap> _varClausesMap;
 
     public Sat(Func<ClauseSet, Variables, Model?> solverStrategy)
     {
       _solverStrategy = solverStrategy ?? throw new ArgumentNullException(nameof(solverStrategy));
       _variablesMap = new Variables();
-      _clauses = new List<Clause>();
+      _clauses = new HashSet<Clause>();
       _varClausesMap = new Dictionary<string, LiteralsToClausesMap>();
     }
 
@@ -75,21 +76,15 @@ namespace RSat.Core
 
     public bool Solve()
     {
-      _clauses.Sort((clause1, clause2) =>
-      {
-        return (clause1.Literals.Count, clause2.Literals.Count) switch
-        {
-          var (count1, count2) when (count1 == count2) => 0,
-          var (count1, count2) when (count1 > count2) => 1,
-          var (count1, count2) when (count1 < count2) => -1,
-          _ => throw new InvalidOperationException()
-        };
-      });
-
+      var stopWatch = new Stopwatch();
+      stopWatch.Start();
       _clauseSet = new ClauseSet(_clauses, _varClausesMap,  _varClausesMap.Keys.ToArray());
 
       FoundModel = _solverStrategy(_clauseSet, _variablesMap);
+      stopWatch.Stop();
+      Console.WriteLine($"Sat - elapsedTime (ms): {stopWatch.ElapsedMilliseconds}");
       return FoundModel != null;
+      
     }
 
     public static Task<Sat> FromStream(Stream stream)

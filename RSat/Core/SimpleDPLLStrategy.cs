@@ -163,8 +163,6 @@ namespace RSat.Core
 
         hasPureLiterals = true;
         removeClausulesSatisfiedByLiteral(clauses, pureLiteral);
-        clauses.AddClause(new Clause(new List<Literal> { pureLiteral }));
-        Console.WriteLine($"Remaining ClausesSet: {clauses.ClausesCount}");
       }
 
       return hasPureLiterals;

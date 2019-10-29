@@ -6,6 +6,9 @@ namespace RSat.Core
 {
   public class Clause
   {
+
+    public static Clause EmptyClause = new Clause(new List<Literal>());
+    
     public Clause(List<Literal> literals)
     {
       Literals = literals ?? throw new ArgumentNullException(nameof(literals));
@@ -29,6 +32,11 @@ namespace RSat.Core
     {
       get;
     }
+
+    public static IComparer<Clause> NumberOfLiteralsComparerComparer
+    {
+      get;
+    } = new NumberOfLiteralsComparer();
 
     public bool IsUnitClause()
     {
@@ -110,6 +118,22 @@ namespace RSat.Core
     private int getLiteralIndex(Literal literal)
     {
       return Literals.BinarySearch(literal);
+    }
+
+    private sealed class NumberOfLiteralsComparer : IComparer<Clause>
+    {
+      public int Compare(Clause x,
+                         Clause y)
+      {
+        if (x.Literals.Count == y.Literals.Count)
+        {
+          return 1;
+        }
+
+        return x.Literals.Count > y.Literals.Count
+          ? 1
+          : -1;
+      }
     }
   }
 }

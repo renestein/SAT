@@ -12,14 +12,14 @@ namespace RSat
   {
     static void Main(string[] args)
     {
-      Trace.Listeners.Add(new ConsoleTraceListener());
+      //Trace.Listeners.Add(new ConsoleTraceListener());
       //runSimpleSolver();
       //SudokuEngine.Run();
-      SudokuEngine.RunSudoku1();
+      //SudokuEngine.RunSudoku1();
       //SudokuEngine.RunNotFunSudoku();
       //SudokuEngine.RunMisaSudoku();
       //solveMoreFormulas();
-      //solveHard250Sample().Wait();
+      solveHard250Sample().Wait();
 
       Console.ReadLine();
     }
@@ -33,6 +33,7 @@ namespace RSat
         Console.WriteLine(sat.FoundModel);
       }
     }
+
 
     private static void solveMoreFormulas()
     {

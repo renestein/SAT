@@ -2,33 +2,23 @@
 using System.Collections.Generic;
 using System.Linq;
 
-
 namespace RSat.Core
 {
   public partial class ClauseSet
   {
-    private readonly IEnumerable<string> _variableNames;
     private readonly Dictionary<string, LiteralsToClausesMap> _clausesByLiterals;
+    private readonly IEnumerable<string> _variableNames;
 
-    public ClauseSet(List<Clause> clauses,
-                     IEnumerable<string> variableNames)
-    {
-      _variableNames = variableNames;
-      Clauses = clauses ?? throw new ArgumentNullException(nameof(clauses));
-      DeleteTautologies();
-      _clausesByLiterals = prepareClauses(Clauses, _variableNames);
-    }
-
-    public ClauseSet(List<Clause> clonedClauses,
+    public ClauseSet(HashSet<Clause> clonedClauses,
                      Dictionary<string, LiteralsToClausesMap> varClausesMap,
                      IEnumerable<string> variableNames) : this(clonedClauses,
                                                                varClausesMap,
                                                                variableNames,
-                                                               preprocessFormula: true)
+                                                               true)
     {
     }
 
-    public ClauseSet(List<Clause> clonedClauses,
+    public ClauseSet(HashSet<Clause> clonedClauses,
                      Dictionary<string, LiteralsToClausesMap> varClausesMap,
                      IEnumerable<string> variableNames,
                      bool preprocessFormula)
@@ -44,7 +34,7 @@ namespace RSat.Core
 
     public bool IsEmpty => !HasClauses;
 
-    public List<Clause> Clauses
+    public HashSet<Clause> Clauses
     {
       get;
     }
@@ -57,10 +47,37 @@ namespace RSat.Core
 
     public Literal? SelectUnusedLiteral(Variables variablesMap)
     {
-      var varName = _clausesByLiterals.Keys.FirstOrDefault(variableName => !variablesMap.HasValueFor(variableName));
-      return varName == null
-             ? null
-             : (Literal)variablesMap[varName];
+      //var name = _clausesByLiterals.Keys.FirstOrDefault(name => !variablesMap.HasValueFor(name));
+      //return name == null
+      //  ? null
+      //  : (Literal)variablesMap[name];
+
+      return selectUnusedLiteralWithMinClausule(variablesMap);
+      
+    }
+
+    private Literal? selectUnusedLiteralWithMinClausule(Variables variablesMap)
+    {
+      return _clausesByLiterals.Values.Where(literalsMap => !variablesMap.HasValueFor(literalsMap.VariableName))
+                               .SelectMany(literalsMap => new[]
+                               {
+                                 new
+                                 {
+                                   literal = (Literal) variablesMap[literalsMap.VariableName],
+                                   minClausuleLength =
+                                     literalsMap.ClausesWithPositiveLiterals.DefaultIfEmpty(Clause.EmptyClause)
+                                                .Min(clause => clause.Literals.Count)
+                                 },
+                                 new
+                                 {
+                                   literal = ~variablesMap[literalsMap.VariableName],
+                                   minClausuleLength =
+                                     literalsMap.ClausesWithNegativeLiterals.DefaultIfEmpty(Clause.EmptyClause)
+                                                .Min(clause => clause.Literals.Count)
+                                 }
+                               }).OrderBy(minClausules => minClausules.minClausuleLength)
+                               .Select(minClausule => minClausule.literal)
+                               .FirstOrDefault();
     }
 
     public void AddClause(Clause clause)
@@ -74,7 +91,6 @@ namespace RSat.Core
       {
         if (literal.IsTrue)
         {
-
           _clausesByLiterals[literal.Name].ClausesWithPositiveLiterals.Add(clause);
         }
         else
@@ -89,7 +105,6 @@ namespace RSat.Core
 
     public ClauseOperationResult DeleteLiteralFromClauses(Literal literal)
     {
-
       var literals = _clausesByLiterals[literal.Name];
       bool haveEmptyClauses;
       if (literal.IsTrue)
@@ -113,8 +128,8 @@ namespace RSat.Core
       }
 
       return haveEmptyClauses
-                  ? ClauseOperationResult.MinOneEmptyClausuleFound
-                  : ClauseOperationResult.OperationSuccess;
+        ? ClauseOperationResult.MinOneEmptyClausuleFound
+        : ClauseOperationResult.OperationSuccess;
     }
 
     public bool IsConsistentSetOfLiterals()
@@ -124,9 +139,9 @@ namespace RSat.Core
 
     public bool HasEmptyClause()
     {
-      for (var i = 0; i < Clauses.Count; i++)
+      foreach (var clause in Clauses)
       {
-        if (Clauses[i].IsEmptyClause())
+        if (clause.IsEmptyClause())
         {
           return true;
         }
@@ -144,7 +159,6 @@ namespace RSat.Core
 
     public void DeleteClausesWithLiteral(Literal pureLiteral)
     {
-
       var varClausules = _clausesByLiterals[pureLiteral.Name];
 
       var toDeleteClauses = pureLiteral.IsTrue
@@ -171,7 +185,7 @@ namespace RSat.Core
       return new ClauseSet(clonedClauses,
                            varClausesMap,
                            _variableNames,
-                           preprocessFormula: false);
+                           false);
     }
 
     public ClauseSet Clone()
@@ -180,7 +194,7 @@ namespace RSat.Core
       return new ClauseSet(clauses,
                            varClausesMap,
                            _variableNames,
-                           preprocessFormula: false);
+                           false);
     }
 
     public bool IsContradiction()
@@ -190,31 +204,15 @@ namespace RSat.Core
 
     public void DeleteTautologies()
     {
-      Clauses.RemoveAll(clausule => clausule.IsTautology());
-    }
-
-    private Dictionary<string, LiteralsToClausesMap> prepareClauses(List<Clause> clauses,
-                                IEnumerable<string> variables)
-    {
-      return variables.Select(varName =>
-      {
-        var positiveLiteral = new Literal(varName, true);
-        var negativeLiteral = new Literal(varName, false);
-
-        var positiveClauses = clauses.Where(clause => clause.HasLiteral(positiveLiteral)).ToList();
-        var negativeClauses = clauses.Where(clause => clause.HasLiteral(negativeLiteral)).ToList();
-        return new LiteralsToClausesMap(varName, positiveClauses, negativeClauses);
-      }).ToDictionary(arg => arg.VariableName);
-
+      Clauses.RemoveWhere(clausule => clausule.IsTautology());
     }
 
 
     private bool hasOnlyConsistentLiterals()
     {
       var dictionary = new Dictionary<string, Literal>();
-      for (var i = 0; i < Clauses.Count; i++)
+      foreach (var clause in Clauses)
       {
-        var clause = Clauses[i];
         if (!clause.IsUnitClause())
         {
           return false;
@@ -237,16 +235,17 @@ namespace RSat.Core
       return true;
     }
 
-    private (List<Clause> Clauses, Dictionary<string, LiteralsToClausesMap> VarClausesMap) cloneInternal()
+    private (HashSet<Clause> newClauses, Dictionary<string, LiteralsToClausesMap> newVarClausesMap) cloneInternal()
     {
-      var newClauses = new List<Clause>();
+      var newClauses = new HashSet<Clause>();
       var newVarClausesMap = _clausesByLiterals.ToDictionary(pair => pair.Key,
                                                              pair =>
-                                                               new LiteralsToClausesMap(pair.Key, new List<Clause>(),
-                                                                                       new List<Clause>()));
-      for (var i = 0; i < Clauses.Count; i++)
+                                                               new LiteralsToClausesMap(pair.Key,
+                                                                                        new List<Clause>(),
+                                                                                        new List<Clause>()));
+      foreach (var clause in Clauses)
       {
-        var clauseClone = Clauses[i].Clone();
+        var clauseClone = clause.Clone();
         foreach (var literal in clauseClone.Literals)
         {
           if (literal.IsTrue)
@@ -258,6 +257,7 @@ namespace RSat.Core
             newVarClausesMap[literal.Name].ClausesWithNegativeLiterals.Add(clauseClone);
           }
         }
+
         newClauses.Add(clauseClone);
       }
 
