@@ -47,12 +47,12 @@ namespace RSat.Core
 
     public Literal? SelectUnusedLiteral(Variables variablesMap)
     {
-      //var name = _clausesByLiterals.Keys.FirstOrDefault(name => !variablesMap.HasValueFor(name));
-      //return name == null
-      //  ? null
-      //  : (Literal)variablesMap[name];
+      var name = _clausesByLiterals.Keys.FirstOrDefault(name => !variablesMap.HasValueFor(name));
+      return name == null
+        ? null
+        : (Literal)variablesMap[name];
 
-      return selectUnusedLiteralWithMinClausule(variablesMap);
+      //return selectUnusedLiteralWithMinClausule(variablesMap);
       
     }
 
