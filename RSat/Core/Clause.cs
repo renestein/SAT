@@ -38,6 +38,7 @@ namespace RSat.Core
       get;
     } = new NumberOfLiteralsComparer();
 
+
     public bool IsUnitClause()
     {
       return Literals.Count == 1;

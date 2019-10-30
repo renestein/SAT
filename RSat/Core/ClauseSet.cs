@@ -24,6 +24,12 @@ namespace RSat.Core
                      bool preprocessFormula)
     {
       Clauses = clonedClauses ?? throw new ArgumentNullException(nameof(clonedClauses));
+
+      if (preprocessFormula)
+      {
+        DeleteTautologies();
+      }
+
       _clausesByLiterals = varClausesMap ?? throw new ArgumentNullException(nameof(varClausesMap));
       _variableNames = variableNames ?? throw new ArgumentNullException(nameof(variableNames));
     }
@@ -53,7 +59,7 @@ namespace RSat.Core
         : (Literal)variablesMap[name];
 
       //return selectUnusedLiteralWithMinClausule(variablesMap);
-      
+
     }
 
     private Literal? selectUnusedLiteralWithMinClausule(Variables variablesMap)
@@ -195,11 +201,6 @@ namespace RSat.Core
                            varClausesMap,
                            _variableNames,
                            false);
-    }
-
-    public bool IsContradiction()
-    {
-      return Clauses.Any(clause => clause.IsEmptyClause());
     }
 
     public void DeleteTautologies()

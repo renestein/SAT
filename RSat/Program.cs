@@ -16,11 +16,11 @@ namespace RSat
       //runSimpleSolver();
       //SudokuEngine.Run();
       //SudokuEngine.RunSudoku1();
-      //for (int i = 0; i < 10; i++)
-      //{
-      //  SudokuEngine.RunNotFunSudoku();
-      //}
-      SudokuEngine.RunMisaSudoku();
+      for (int i = 0; i < 10; i++)
+      {
+        SudokuEngine.RunNotFunSudoku();
+      }
+      //SudokuEngine.RunMisaSudoku();
       //solveMoreFormulas();
       //solveHard250Sample().Wait();
 

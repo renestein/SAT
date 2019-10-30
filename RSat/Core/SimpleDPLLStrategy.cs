@@ -53,12 +53,6 @@ namespace RSat.Core
           continue;
         }
 
-        if (hasContradictions(clauses))
-        {
-          Trace.WriteLine("Contradiction found. No model...");
-        }
-
-
         var unitClauseRuleResult = propagateUnitClauses(clauses, variables);
         if (unitClauseRuleResult == ClauseSet.ClauseOperationResult.MinOneEmptyClausuleFound)
         {
@@ -66,64 +60,43 @@ namespace RSat.Core
           continue;
         }
 
-        var pureLiteralsProcessed = handlePureLiterals(clauses, variables);
-
+        handlePureLiterals(clauses, variables);
+        
         var chosenLiteral = chooseNewLiteral(clauses,
                                              variables);
 
-
-
-        var somethingChanged = chosenLiteral != null ||
-                                unitClauseRuleResult == ClauseSet.ClauseOperationResult.OperationSuccess ||
-                                pureLiteralsProcessed;
-
-        if (!somethingChanged && !currentState.SomethingChangedInPreviousIteration)
-        {
-          Trace.WriteLine("Nothing changed. Backtracking...");
-          continue;
-        }
-
         if (chosenLiteral == null)
         {
-          Trace.WriteLine($"Out of literals");
-          solverStack =
-            solverStack.Push(new
-                               SolverState(clauses.Clone(),
-                                           variablesMap.Clone(),
-                                           currentState.Depth + 1,
-                                           false)
-            {
-              SomethingChangedInPreviousIteration = somethingChanged
-            });
+          if (hasEmptyClause(clauses))
+          {
+            Trace.WriteLine("Empty clause found. Backtracking...");
+            continue;
+          }
+
+          Trace.WriteLine("Found model...");
+          return new Model(0, generateModelValues(clauses, variables));
         }
-        else
-        {
-          Trace.WriteLine($"Chosen literal {chosenLiteral.Name}");
 
-          var newClauseNeg = clauses.CloneWithClause(new Clause(new List<Literal> { ~chosenLiteral }));
-          var newClausePos = clauses.CloneWithClause(new Clause(new List<Literal> { chosenLiteral }));
+        Trace.WriteLine($"Chosen literal {chosenLiteral.Name}");
+
+        var newClauseNeg = clauses.CloneWithClause(new Clause(new List<Literal> { ~chosenLiteral }));
+        var newClausePos = clauses.CloneWithClause(new Clause(new List<Literal> { chosenLiteral }));
 
 
-          solverStack =
-            solverStack.Push(new
-                               SolverState(newClauseNeg,
-                                           variablesMap.Clone(),
-                                           currentState.Depth + 1,
-                                          true));
-          solverStack = solverStack.Push(new
-                                           SolverState(newClausePos,
-                                                       variablesMap.Clone(),
-                                                       currentState.Depth + 1,
-                                                      true));
-        }
+        solverStack =
+          solverStack.Push(new
+                             SolverState(newClauseNeg,
+                                         variablesMap.Clone(),
+                                         currentState.Depth + 1,
+                                         true));
+        solverStack = solverStack.Push(new
+                                         SolverState(newClausePos,
+                                                     variablesMap.Clone(),
+                                                     currentState.Depth + 1,
+                                                     true));
       }
 
       return null;
-    }
-
-    private static bool hasContradictions(ClauseSet clauses)
-    {
-      return clauses.IsContradiction();
     }
 
     private static IEnumerable<ModelValue> generateModelValues(ClauseSet clausesSet,
@@ -231,7 +204,6 @@ namespace RSat.Core
         VariablesMap = variablesMap;
         Depth = depth;
         LiteralAdded = literalAdded;
-        SomethingChangedInPreviousIteration = true;
       }
 
       public ClauseSet Clauses
@@ -253,13 +225,6 @@ namespace RSat.Core
       {
         get;
       }
-
-      public bool SomethingChangedInPreviousIteration
-      {
-        get;
-        set;
-      }
-
     }
   }
 }
