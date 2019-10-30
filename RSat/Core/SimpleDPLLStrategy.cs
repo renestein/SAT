@@ -24,6 +24,7 @@ namespace RSat.Core
 
       const int INITIAL_LEVEL = 0;
 
+
       var solverStack = ImmutableStack<SolverState>.Empty;
       var initialSolverState = new SolverState(initialClauses,
                                                variablesMap,
@@ -35,28 +36,38 @@ namespace RSat.Core
       {
 
         solverStack = solverStack.Pop(out var currentState);
-        Trace.WriteLine($"Iteration depth: {currentState.Depth}");
 
+#if PROGRESS_TRACE
+        Trace.WriteLine($"Iteration depth: {currentState.Depth}");
+#endif
         var clauses = currentState.Clauses;
         var variables = currentState.VariablesMap;
 
 
         if (isConsistentSetOfLiterals(clauses))
         {
+#if PROGRESS_TRACE
           Trace.WriteLine("Found model...");
+#endif
           return new Model(0, generateModelValues(clauses, variables));
         }
 
         if (hasEmptyClause(clauses))
         {
+#if PROGRESS_TRACE
           Trace.WriteLine("Empty clause found. Backtracking...");
+#endif
+
           continue;
         }
 
         var unitClauseRuleResult = propagateUnitClauses(clauses, variables);
         if (unitClauseRuleResult == ClauseSet.ClauseOperationResult.MinOneEmptyClausuleFound)
         {
+#if PROGRESS_TRACE
           Trace.WriteLine("Empty clause (after unit rule) found. Backtracking...");
+#endif
+
           continue;
         }
 
@@ -69,15 +80,24 @@ namespace RSat.Core
         {
           if (hasEmptyClause(clauses))
           {
+
+#if PROGRESS_TRACE
             Trace.WriteLine("Empty clause found. Backtracking...");
+#endif
+
             continue;
           }
 
+#if PROGRESS_TRACE
           Trace.WriteLine("Found model...");
+#endif
+
           return new Model(0, generateModelValues(clauses, variables));
         }
-
+#if PROGRESS_TRACE
         Trace.WriteLine($"Chosen literal {chosenLiteral.Name}");
+#endif
+
 
         var newClauseNeg = clauses.CloneWithClause(new Clause(new List<Literal> { ~chosenLiteral }));
         var newClausePos = clauses.CloneWithClause(new Clause(new List<Literal> { chosenLiteral }));
@@ -89,6 +109,7 @@ namespace RSat.Core
                                          variablesMap.Clone(),
                                          currentState.Depth + 1,
                                          true));
+
         solverStack = solverStack.Push(new
                                          SolverState(newClausePos,
                                                      variablesMap.Clone(),
@@ -131,7 +152,11 @@ namespace RSat.Core
       var hasPureLiterals = false;
       foreach (var pureLiteral in pureLiteralsInClauses)
       {
-        Trace.WriteLine($"Trying pure literal strategy: {pureLiteral}");
+
+#if PROGRESS_TRACE
+      Trace.WriteLine($"Trying pure literal strategy: {pureLiteral}");
+#endif
+
         variablesMap.SetToValue(pureLiteral.Name, pureLiteral.IsTrue);
 
         hasPureLiterals = true;
@@ -145,9 +170,15 @@ namespace RSat.Core
     private static void removeClausulesSatisfiedByLiteral(ClauseSet clausules,
                                                                  Literal literal)
     {
+#if PROGRESS_TRACE
       Trace.WriteLine($"Deleting clausules with literal: {literal}");
+#endif
       clausules.DeleteClausesWithLiteral(literal);
+
+#if PROGRESS_TRACE
       Trace.WriteLine($"Remaining ClausulesSet: {clausules.ClausesCount}");
+#endif
+
     }
 
     private static bool hasEmptyClause(ClauseSet clauses)
@@ -171,7 +202,11 @@ namespace RSat.Core
         unitClausuleRuleResult = ClauseSet.ClauseOperationResult.OperationSuccess;
 
         var singleLiteral = toPropagateUnitClause.FirstLiteral;
-        Trace.WriteLine($"Trying unit propagation of the clause with literal: {singleLiteral}");
+
+#if PROGRESS_TRACE
+    Trace.WriteLine($"Trying unit propagation of the clause with literal: {singleLiteral}");
+#endif
+
 
         variablesMap.SetToValue(singleLiteral.Name, singleLiteral.IsTrue);
         removeClausulesSatisfiedByLiteral(clauses, singleLiteral);

@@ -1,7 +1,8 @@
 ﻿using System;
+#if PROGRESS_TRACE
 using System.Diagnostics;
+#endif
 using System.IO;
-using System.Reflection.Metadata;
 using System.Threading.Tasks;
 using RSat.Core;
 using RSat.Sudoku;
@@ -12,7 +13,10 @@ namespace RSat
   {
     static void Main(string[] args)
     {
-      //Trace.Listeners.Add(new ConsoleTraceListener());
+
+#if PROGRESS_TRACE
+      Trace.Listeners.Add(new ConsoleTraceListener());
+#endif
       //runSimpleSolver();
       //SudokuEngine.Run();
       //SudokuEngine.RunSudoku1();
