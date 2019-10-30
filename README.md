@@ -1,6 +1,7 @@
+[![Build Status](https://dev.azure.com/rene0884/RSat/_apis/build/status/renestein.SAT?branchName=master)](https://dev.azure.com/rene0884/RSat/_build/latest?definitionId=1&branchName=master)
+
 A toy implementation of a simple SAT solver in the C#.
 
-[![Build Status](https://dev.azure.com/rene0884/RSat/_apis/build/status/renestein.SAT?branchName=master)](https://dev.azure.com/rene0884/RSat/_build/latest?definitionId=1&branchName=master)
 * Supports DPLL algorithm.
 * Supports DIMACS format
 * Simple Sudoku solver
@@ -12,12 +13,11 @@ Solving problem described in the DIMACS file.
 var isSatisfiable = sat.Solve();
 Console.WriteLine(sat.FoundModel);
 Assert.IsTrue(isSatisfiable);
-
- ```
-
+```
 
 
-Hard sudoku, try it. :)
+
+Hard sudoku, try it.
 
 ![Sudoku](https://snipboard.io/CfnwtH.jpg "Sudoku")
 
@@ -59,8 +59,8 @@ Encoding Sudoku rules.
       };
 
       Run(board);
-    }
- ```
+   }
+```
  Solved sudoku.
  
  ![Solved sudoku](https://snipboard.io/dbPcBW.jpg "Sudoku")
