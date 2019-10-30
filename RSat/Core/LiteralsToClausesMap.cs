@@ -50,8 +50,15 @@ namespace RSat.Core
           ? null
           : (Literal)variables[VariableName];
       }
-
       return null;
     }
+    public bool IsUnitLiteral()
+    {
+      return ClausesWithPositiveLiterals.Count == 0 && ClausesWithNegativeLiterals.Count == 1 &&
+             ClausesWithNegativeLiterals[0].IsUnitClause() ||
+             ClausesWithNegativeLiterals.Count == 0 && ClausesWithPositiveLiterals.Count == 1 &&
+             ClausesWithPositiveLiterals[0].IsUnitClause();
+    }
+
   }
 }

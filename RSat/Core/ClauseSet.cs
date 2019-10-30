@@ -211,26 +211,10 @@ namespace RSat.Core
 
     private bool hasOnlyConsistentLiterals()
     {
-      var dictionary = new Dictionary<string, Literal>();
-      foreach (var clause in Clauses)
+      foreach (var map in _clausesByLiterals.Values)
       {
-        if (!clause.IsUnitClause())
-        {
+        if (!map.IsUnitLiteral())
           return false;
-        }
-
-        var singleLiteral = clause.FirstLiteral;
-        if (dictionary.TryGetValue(singleLiteral.Name, out var currentLiteral))
-        {
-          if (!currentLiteral.Equals(singleLiteral))
-          {
-            return false;
-          }
-        }
-        else
-        {
-          dictionary.Add(singleLiteral.Name, singleLiteral);
-        }
       }
 
       return true;
