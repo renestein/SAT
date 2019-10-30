@@ -248,14 +248,5 @@ namespace RSat.Core
 
       return (newClauses, newVarClausesMap);
     }
-
-    [Flags]
-    private enum PureLiteralResult
-    {
-      Unknown = 0,
-      PureTrue = 1,
-      PureFalse = 2,
-      NoPure = 4
-    }
   }
 }
