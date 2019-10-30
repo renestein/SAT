@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RSat.Core
+namespace RSatLib.Core
 {
   public readonly struct Variable : IEquatable<Variable>
   {

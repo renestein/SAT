@@ -1,11 +1,10 @@
 ﻿#define DUMP_MODELS
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Numerics;
 
-namespace RSat.Core
+namespace RSatLib.Core
 {
   public static class NaiveSolverStrategy
   {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using RSat.Core;
+using RSatLib.Core;
 
 namespace RSat.Sudoku
 {

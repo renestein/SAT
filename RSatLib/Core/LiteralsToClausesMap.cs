@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace RSat.Core
+namespace RSatLib.Core
 {
   public class LiteralsToClausesMap
   {

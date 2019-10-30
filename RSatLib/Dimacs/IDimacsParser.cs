@@ -1,8 +1,8 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
-using RSat.Core;
+using RSatLib.Core;
 
-namespace RSat.Dimacs
+namespace RSatLib.Dimacs
 {
   public interface IDimacsParser
   {

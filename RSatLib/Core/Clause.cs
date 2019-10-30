@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RSat.Core
+namespace RSatLib.Core
 {
   public class Clause
   {

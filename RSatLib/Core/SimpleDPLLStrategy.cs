@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 
 //Naive, inefficient (LINQ, Immutable collections), dirty.
-namespace RSat.Core
+namespace RSatLib.Core
 {
   public static class SimpleDPLLStrategy
   {

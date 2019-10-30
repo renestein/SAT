@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace RSat.Core
+namespace RSatLib.Core
 {
   public class Variables
   {

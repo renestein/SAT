@@ -1,4 +1,4 @@
-﻿namespace RSat.Core
+﻿namespace RSatLib.Core
 {
   public partial class ClauseSet
   {

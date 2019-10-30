@@ -4,8 +4,8 @@ using System.Diagnostics;
 #endif
 using System.IO;
 using System.Threading.Tasks;
-using RSat.Core;
 using RSat.Sudoku;
+using RSatLib.Core;
 
 namespace RSat
 {
@@ -17,23 +17,23 @@ namespace RSat
 #if PROGRESS_TRACE
       Trace.Listeners.Add(new ConsoleTraceListener());
 #endif
-      //runSimpleSolver();
-      //SudokuEngine.Run();
-      //SudokuEngine.RunSudoku1();
       for (int i = 0; i < 10; i++)
       {
-        SudokuEngine.RunNotFunSudoku();
+        //runSimpleSolver();
+        //SudokuEngine.Run();
+        SudokuEngine.RunSudoku1();
+        // SudokuEngine.RunNotFunSudoku();
+        SudokuEngine.RunMisaSudoku();
+        //solveMoreFormulas();
+        //solveHard250Sample().Wait();
       }
-      //SudokuEngine.RunMisaSudoku();
-      //solveMoreFormulas();
-      //solveHard250Sample().Wait();
 
       Console.ReadLine();
     }
 
     private static async Task solveHard250Sample()
     {
-      var sat = await Sat.FromFile(Path.Combine("../../../../", "RSat.Test/DIMACS_Samples/hard/ignore_sat250.cnf"))
+      var sat = await Sat.FromFile(Path.Combine("../../../../", "RSat.Test/DIMACS_Samples/hard/ignore_example1.cnf"))
                          .ConfigureAwait(false);
       if (sat.Solve())
       {

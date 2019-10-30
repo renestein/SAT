@@ -2,8 +2,7 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using NUnit.Framework.Internal;
-using RSat.Core;
+using RSatLib.Core;
 
 namespace RSatTest
 {

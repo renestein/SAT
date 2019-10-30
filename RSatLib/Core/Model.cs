@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Numerics;
 using System.Text;
 
-namespace RSat.Core
+namespace RSatLib.Core
 {
   public class Model
   {

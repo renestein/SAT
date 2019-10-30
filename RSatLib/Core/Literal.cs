@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RSat.Core
+namespace RSatLib.Core
 {
   public class Literal : IEquatable<Literal>, IComparable<Literal>
   {

@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using RSat.Dimacs;
+using RSatLib.Dimacs;
 
 namespace RSatTest
 {

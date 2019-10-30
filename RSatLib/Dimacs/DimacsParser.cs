@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using RSat.Core;
+using RSatLib.Core;
 
-namespace RSat.Dimacs
+namespace RSatLib.Dimacs
 {
   public class DimacsParser : IDimacsParser
   {
