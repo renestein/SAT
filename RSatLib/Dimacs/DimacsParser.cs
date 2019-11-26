@@ -32,7 +32,7 @@ namespace RSatLib.Dimacs
       var parseResult = await enumerateLines(reader)
                               .Where(line => !String.IsNullOrEmpty(line) && !line[0].Equals(COMMENT))
                               .AggregateAsync(new ParserState(new Sat(SimpleDPLLStrategy.Solve)),
-                                              parseLine);
+                                              parseLine).ConfigureAwait(false);
       parseResult.ThrowIfInvalidFormat();
       return parseResult.Sat;
     }
